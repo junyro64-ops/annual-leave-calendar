@@ -2,6 +2,7 @@ local LoadFunctions = {}
 
 local Cell = require("cell")
 local CalendarManager = require("calendar_manager")
+local EmployeeManager = require("employee_manager")
 
 local CELL_TYPE = require("constants").CELL_TYPE
 local CELL_COUNT = require("constants").CELL_COUNT
@@ -46,6 +47,12 @@ function LoadFunctions.loadCalendar(year, month)
 	end
 
     return currentCalendar, cellDates
+end
+
+function LoadFunctions.loadEmployees(year, month)
+	for name, data in pairs(EmployeeManager.database) do
+		EmployeeManager.checkLeaveStart(data, year, month)
+	end
 end
 
 return LoadFunctions

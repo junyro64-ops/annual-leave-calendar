@@ -1,3 +1,5 @@
+local ErrorCheck = require("error_check_module")
+
 local CalendarManager = require("calendar_manager")
 local EmployeeManager = require("employee_manager")
 
@@ -29,6 +31,7 @@ function love.load()
 	CalendarManager.createYearTree(currentYear - 1)
 	CalendarManager.createYearTree(currentYear + 1)
 
+	LoadFunctions.loadEmployees(currentYear, currentMonth)
 	weekdayCells = LoadFunctions.loadWeekdays(weekDays)
 	currentCalendar, cellDates = LoadFunctions.loadCalendar(currentYear, currentMonth)
 

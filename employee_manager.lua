@@ -5,21 +5,46 @@ local ERROR_CHECK = require("constants").ERROR_CHECK
 local EmployeeManager = {}
 EmployeeManager.database = {}
 
-function EmployeeManager.addEmployee(name, maxLeave, leaveStartMonth)
+function EmployeeManager.addEmployee(name, maxLeave, year, month)
 	EmployeeManager.database[name] = {
+		name = name,
 		maxLeave = maxLeave,
-		leaveStartMonth = leaveStartMonth,
+		leaveStartYear = year,
+		leaveStartMonth = month,
 		usedLeave = 0,
 		leaveDates = {}
 	}
 end
 
-function EmployeeManager.getEmployee(name)
-	return EmployeeManager.database[name]
+function EmployeeManager.getEmployeeData(name)
+	local data = EmployeeManager.database[name]
+
+	if not data then
+		return nil
+	else
+		return data
+	end
 end
 
-function EmployeeManager.getLeaveDates(name)
-	return EmployeeManager.database[name].leaveDates
+-- this function should run whenver the application loads
+--   so that it can reset the leave record for another year
+--   but keep the leave dates data for future checks
+function EmployeeManager.checkLeaveStart(data, year, month)
+	local monthsPassed = ((year - data.leaveStartYear) * 12) + (month - data.leaveStartMonth)
+
+	if monthsPassed >= 12 then
+		data.leaveStartYear = data.leaveStartYear + math.floor(monthsPassed / 12)
+		data.usedLeave = 0
+	end
+end
+
+function EmployeeManager.cancelLeave(data, year, month, date)
+end
+
+-- this function should be called only in case when
+--   the manager changes employee's annual leave start month
+function EmployeeManager.changeStartMonth(name, month)
+	EmployeeManager.database[name].leaveStartMonth = month
 end
 
 function EmployeeManager.useLeave(name, year, month, day, amount)

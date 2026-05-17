@@ -3,7 +3,9 @@ local Constants = {}
 Constants.ERROR_CHECK = {
     SUCCESS = "SUCCESS",
     FAILED = "FAILED",
-    MAX_REACHED = "MAX_REACHED"
+    MAX_REACHED = "MAX_REACHED",
+    NOT_FOUND = "NOT_FOUND",
+    CRASHED = "SYSTEM_CRASHED"
 }
 
 Constants.CELL_TYPE = {
