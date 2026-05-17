@@ -1,0 +1,5 @@
+.vscode/
+font/
+*.zip
+*.exe
+.env
