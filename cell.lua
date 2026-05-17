@@ -29,7 +29,7 @@ function Cell:new(type, index)
     instance.value = index
 
     if instance.type == CELL_TYPE.YEAR then
-        instance.coordinates = MARGIN
+        instance.coordinates = { x = MARGIN.x, y = MARGIN.y}
         instance.drawFunc = drawYear
 
     elseif instance.type == CELL_TYPE.MONTH then

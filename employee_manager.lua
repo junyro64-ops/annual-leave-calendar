@@ -38,7 +38,7 @@ function EmployeeManager.useLeave(name, year, month, day, amount)
 
 	data.leaveDates[year] = data.leaveDates[year] or {}
 	data.leaveDates[year][month] = data.leaveDates[year][month] or {}
-	data.leaveDates[year][month][day] = day
+	data.leaveDates[year][month][day] = amount
 
 	return ERROR_CHECK.SUCCESS
 end

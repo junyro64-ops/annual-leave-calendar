@@ -41,9 +41,9 @@ function CalendarManager.createYearTree(year)
 end
 
 function CalendarManager.destroyYearTree(year)
-    CalendarManager.calendarDataTree[year] = {}
-    CalendarManager.startingWeekDayTable[year] = {}
-    CalendarManager.daysInMonthTable[year] = {}
+    CalendarManager.calendarDataTree[year] = nil
+    CalendarManager.startingWeekDayTable[year] = nil
+    CalendarManager.daysInMonthTable[year] = nil
 end
 
 return CalendarManager

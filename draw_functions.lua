@@ -14,17 +14,14 @@ local Fonts = {
 function DrawFunctions.drawWeekdays(weekdayCells, weekDays)
 	love.graphics.setFont(Fonts.medium)
 
-	local weekDayTextSize = {
-		width = Fonts.medium:getWidth(weekDays[1]),
-		height = Fonts.medium:getHeight()
-	}
-
 	for i=1, #weekdayCells do
 		weekdayCells[i]:draw()
+		local width = Fonts.medium:getWidth(weekDays[1])
+		local height = Fonts.medium:getHeight()
 		love.graphics.print(
 			weekDays[i], 
-			weekdayCells[i].coordinates.x + (CELL_SIZE.WEEKDAY.width - weekDayTextSize.width)/2, 
-			weekdayCells[i].coordinates.y + (CELL_SIZE.WEEKDAY.height - weekDayTextSize.height)/2
+			weekdayCells[i].coordinates.x + (CELL_SIZE.WEEKDAY.width - width)/2, 
+			weekdayCells[i].coordinates.y + (CELL_SIZE.WEEKDAY.height - height)/2
 	)
 	end
 end
