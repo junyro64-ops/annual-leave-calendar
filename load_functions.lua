@@ -6,6 +6,7 @@ local EmployeeManager = require("employee_manager")
 
 local CELL_TYPE = require("constants").CELL_TYPE
 local CELL_COUNT = require("constants").CELL_COUNT
+local ERROR_CHECK = require("constants").ERROR_CHECK
 
 -- this function returns weekdayCells
 function LoadFunctions.loadWeekdays(weekDays)
@@ -50,9 +51,14 @@ function LoadFunctions.loadCalendar(year, month)
 end
 
 function LoadFunctions.loadEmployees(year, month)
+	if EmployeeManager.database == nil then
+		return ERROR_CHECK.NOT_FOUND
+	end
 	for name, data in pairs(EmployeeManager.database) do
 		EmployeeManager.checkLeaveStart(data, year, month)
 	end
+
+	return ERROR_CHECK.SUCCESS
 end
 
 return LoadFunctions

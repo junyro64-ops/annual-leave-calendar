@@ -22,6 +22,11 @@ Constants.SCREEN_SIZE = {
     height = 950
 }
 
+Constants.POP_UP = {
+    width = 400,
+    height = 200
+}
+
 Constants.MARGIN = {
     x = 65,
     y = 20,
