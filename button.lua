@@ -1,5 +1,6 @@
-local Button = {}
+local UIElement = require("ui_element")
 
+local Button = setmetatable({}, {__index = UIElement})
 Button.__index = Button
 
 local STATE = {
@@ -8,33 +9,32 @@ local STATE = {
     PRESSED = "PRESSED"
 }
 
-function Button:new(x, y, width, height)
-    local instance = setmetatable({}, self)
-    instance.x = x
-    instance.y = y
-    instance.width = width
-    instance.height = height
+function Button:new(x, y, width, height, text)
+    local instance = UIElement.new(self, x, y, width, height)
 
-    instance.onClick = nil
+    instance.callback = nil
 
     instance.state = STATE.IDLE
+    instance.text = text
 
     instance.hasGraphic = false
     instance.graphicIdle = nil
     instance.graphicHover = nil
     instance.graphicPress = nil
 
+    setmetatable(instance, Button)
+
     return instance
 end
 
-function Button:click()
-    if self.onClick then
-        self.onClick()
+function Button:onClick()
+    if self.callback then
+        self.callback()
     end
 end
 
 function Button:setOnClick(callback)
-    self.onClick = callback
+    self.callback = callback
 end
 
 function Button:setGraphic(idle_image, hover_image, pressed_image)
