@@ -2,6 +2,7 @@ local ErrorCheck = require("error_check_module")
 
 local CalendarManager = require("calendar_manager")
 local EmployeeManager = require("employee_manager")
+local UIManager = require("ui_manager")
 
 local LoadFunctions = require("load_functions")
 local DrawFunctions = require("draw_functions")
@@ -80,7 +81,7 @@ end
 function love.draw()
 
 	if debugCheck then
-		DrawFunctions.debugMessage(error_message)
+		UIManager.debugMessage(error_message)
 		--debugCheck = false
 	end
 

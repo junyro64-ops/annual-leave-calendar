@@ -29,8 +29,6 @@ function UIElement:draw()
     love.graphics.translate(self.x, self.y)
 
     love.graphics.setColor(0, 0, 0)
-    
-    love.graphics.rectangle("line", 0, 0, self.width, self.height)
 
     if self.customDraw then
         self:customDraw()

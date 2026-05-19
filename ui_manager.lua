@@ -12,10 +12,12 @@ local Cell = require("cell")
 local CELL_COUNT = require("constants").CELL_COUNT
 local CELL_TYPE = require("constants").CELL_TYPE
 local CELL_SIZE = require("constants").CELL_SIZE
-local MARGIN = require("constants").MARGIN
-
 local cellDates = {}
 local week = {"SUN", "MON", "TUE", "WED", "THU", "FRI", "SAT"}
+
+local SCREEN_SIZE = require("constants").SCREEN_SIZE
+local POP_UP = require("constants").POP_UP
+local MARGIN = require("constants").MARGIN
 
 local Fonts = {
 	large = love.graphics.newFont("font/NanumGothic.ttf", 45),
@@ -176,6 +178,33 @@ function UIManager.draw()
 	    )
     end
     
+end
+
+function UIManager.dimBackground()
+	love.graphics.setColor(0, 0, 0, 0.5)
+	love.graphics.rectangle("fill", 0, 0, SCREEN_SIZE.width, SCREEN_SIZE.height)
+end
+
+function UIManager.popupScreen(message)
+	local x = (SCREEN_SIZE.width - POP_UP.width) / 2
+	local y = (SCREEN_SIZE.height - POP_UP.height) / 2
+
+	love.graphics.setColor(0.5, 0.5, 0.5)
+	love.graphics.rectangle("fill", x, y, POP_UP.width, POP_UP.height)
+
+	love.graphics.setColor(1, 1, 1)
+	love.graphics.setFont(Fonts.medium)
+
+	love.graphics.print(message, x + 20, y + 20)
+end
+
+function UIManager.debugMessage(error_message)
+	love.graphics.setFont(Fonts.medium)
+	love.graphics.print(
+		error_message, 
+		SCREEN_SIZE.width - Fonts.medium:getWidth(error_message), 
+		SCREEN_SIZE.height - Fonts.medium:getHeight()
+	)
 end
 
 return UIManager

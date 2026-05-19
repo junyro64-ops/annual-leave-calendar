@@ -62,4 +62,10 @@ end
 function Cell:onClick()
 end
 
+function Cell:customDraw()
+    
+    love.graphics.rectangle("line", 0, 0, self.width, self.height)
+    
+end
+
 return Cell
