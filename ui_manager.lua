@@ -125,8 +125,8 @@ function UIManager.mousePressed(x, y, mouseButton)
             local element = UIManager.elements[i]
             if x >= element.x and x <= (element.x + element.width) and
                 y >= element.y and y <= (element.y + element.height) then
-                if element.onclick then
-                    element:onclick()
+                if element.onClick then
+                    element:onClick()
                 end
 
                 return true
@@ -171,8 +171,8 @@ function UIManager.draw()
         end
 		love.graphics.print(
 			week[i], 
-			element[i].x + (CELL_SIZE.WEEKDAY.width - width)/2, 
-			element[i].y + (CELL_SIZE.WEEKDAY.height - height)/2
+			element.x + (CELL_SIZE.WEEKDAY.width - width)/2, 
+			element.y + (CELL_SIZE.WEEKDAY.height - height)/2
 	    )
     end
     

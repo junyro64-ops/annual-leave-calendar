@@ -7,6 +7,7 @@ local CELL_TYPE = require("constants").CELL_TYPE
 local CELL_SIZE = require("constants").CELL_SIZE
 local MARGIN = require("constants").MARGIN
 
+--[[
 local function drawYear()
     love.graphics.rectangle("line", 0, 0, CELL_SIZE.YEAR.width, CELL_SIZE.YEAR.height)
 end
@@ -22,13 +23,14 @@ end
 local function drawWeekday()
     love.graphics.rectangle("line", 0, 0, CELL_SIZE.WEEKDAY.width, CELL_SIZE.WEEKDAY.height)
 end
+]]
 
 function Cell:new(x, y, width, height, type, index)
     local instance = UIElement.new(self, x, y, width, height)
 
     instance.type = type
     instance.value = index
-
+--[[
     if instance.type == CELL_TYPE.YEAR then
         instance.coordinates = { x = MARGIN.x, y = MARGIN.y}
         instance.drawFunc = drawYear
@@ -53,6 +55,8 @@ function Cell:new(x, y, width, height, type, index)
         }
         instance.drawFunc = drawWeekday
     end
+    ]]
+  
 
     setmetatable(instance, Cell)
 
