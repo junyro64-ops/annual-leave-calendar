@@ -51,7 +51,8 @@ function Button:setGraphic(idle_image, hover_image, pressed_image)
 
 end
 
-function Button:draw()
+function Button:customDraw()
+
     if self.hasGraphic then
         local image = self.graphicIdle
 
@@ -63,6 +64,8 @@ function Button:draw()
 
         love.graphics.draw(image, self.x, self.y)
     end
+
+    love.graphics.print(self.text, 10, 10)
 end
 
 return Button

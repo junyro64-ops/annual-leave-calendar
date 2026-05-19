@@ -1,4 +1,6 @@
-local Cell = {}
+local UIElement = require("ui_element")
+
+local Cell = setmetatable({}, {__index = UIElement})
 Cell.__index = Cell
 
 local CELL_TYPE = require("constants").CELL_TYPE
@@ -21,9 +23,8 @@ local function drawWeekday()
     love.graphics.rectangle("line", 0, 0, CELL_SIZE.WEEKDAY.width, CELL_SIZE.WEEKDAY.height)
 end
 
-function Cell:new(type, index)
-
-    local instance = setmetatable({}, self)
+function Cell:new(x, y, width, height, type, index)
+    local instance = UIElement.new(self, x, y, width, height)
 
     instance.type = type
     instance.value = index
@@ -53,18 +54,12 @@ function Cell:new(type, index)
         instance.drawFunc = drawWeekday
     end
 
+    setmetatable(instance, Cell)
+
     return instance
 end
 
-function Cell:draw()
-    love.graphics.push()
-    love.graphics.translate(self.coordinates.x, self.coordinates.y)
-
-    love.graphics.setColor(0 , 0, 0)
-    
-    self.drawFunc()
-
-    love.graphics.pop()
+function Cell:onClick()
 end
 
 return Cell

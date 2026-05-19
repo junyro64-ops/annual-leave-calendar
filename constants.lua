@@ -12,9 +12,7 @@ Constants.CELL_TYPE = {
     YEAR = "YEAR",
     MONTH = "MONTH",
     DAY = "DAY",
-    WEEKDAY = "WEEKDAY",
-    PREVIOUS_MONTH_CELL = "PREVIOUS_MONTH_CELL",
-    NEXT_MONTH_CELL = "NEXT_MONTH_CELL"
+    WEEKDAY = "WEEKDAY"
 }
 
 Constants.SCREEN_SIZE = {
