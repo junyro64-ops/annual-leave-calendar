@@ -75,14 +75,12 @@ end
 function UIManager.loadWeekdays()
     local x, y
     
-    local weekdayCells = {}
 	for i=1, #week do
         x, y = calculatePos(CELL_TYPE.WEEKDAY, i)
 		registerWeekdays(
             Cell:new(x, y, CELL_SIZE.WEEKDAY.width, CELL_SIZE.WEEKDAY.height, CELL_TYPE.WEEKDAY, i)
         )
 	end
-    return weekdayCells
 end
 
 function UIManager.loadCalendar(year, month)
@@ -173,8 +171,8 @@ function UIManager.draw()
         end
 		love.graphics.print(
 			week[i], 
-			UIManager.weekDays[i].x + (CELL_SIZE.WEEKDAY.width - width)/2, 
-			UIManager.weekDays[i].y + (CELL_SIZE.WEEKDAY.height - height)/2
+			element[i].x + (CELL_SIZE.WEEKDAY.width - width)/2, 
+			element[i].y + (CELL_SIZE.WEEKDAY.height - height)/2
 	    )
     end
     

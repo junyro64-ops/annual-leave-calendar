@@ -10,10 +10,12 @@ local DrawFunctions = require("draw_functions")
 local SCREEN_SIZE = require("constants").SCREEN_SIZE
 local ERROR_CHECK = require("constants").ERROR_CHECK
 
+--[[
 local currentCalendar = {}
 local cellDates = {}
 local weekDays = {"SUN", "MON", "TUE", "WED", "THU", "FRI", "SAT"}
 local weekdayCells = {}
+]]
 
 local currentYear, currentMonth
 
@@ -34,6 +36,9 @@ function love.load()
 	CalendarManager.createYearTree(currentYear - 1)
 	CalendarManager.createYearTree(currentYear + 1)
 
+  UIManager.loadWeekdays()
+  UIManager.loadCalendar(currentYear, currentMonth)
+--[[
 	result, error_check = ErrorCheck.execute(LoadFunctions.loadEmployees, currentYear, currentMonth)
 	if error_check ~= ERROR_CHECK.SUCCESS then
 		debugCheck = true
@@ -42,6 +47,8 @@ function love.load()
 	--LoadFunctions.loadEmployees(currentYear, currentMonth)
 	weekdayCells = LoadFunctions.loadWeekdays(weekDays)
 	currentCalendar, cellDates = LoadFunctions.loadCalendar(currentYear, currentMonth)
+]]
+
 
 	love.window.setMode(SCREEN_SIZE.width, SCREEN_SIZE.height)
 	love.graphics.setBackgroundColor(1,1,1)
@@ -73,7 +80,7 @@ end
 
 function love.update(dt)
 	if calendarChanged then
-		currentCalendar, cellDates = LoadFunctions.loadCalendar(currentYear, currentMonth)
+		UIManager.loadCalendar(currentYear, currentMonth)
 		calendarChanged = false
 	end
 end
@@ -84,8 +91,12 @@ function love.draw()
 		UIManager.debugMessage(error_message)
 		--debugCheck = false
 	end
+	
+	UIManager.draw()
 
+--[[
 	DrawFunctions.drawWeekdays(weekdayCells, weekDays)
 	DrawFunctions.drawCalendar(currentCalendar, cellDates)
+	]]
 
 end
