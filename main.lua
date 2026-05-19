@@ -65,6 +65,7 @@ function love.keypressed(key, scancode, isrepeat)
 		else
 			currentMonth = currentMonth - 1
 		end
+		calendarChanged = true
 	elseif key == "right" then
 		if currentMonth == 12 then
 			currentMonth = 1
@@ -74,8 +75,12 @@ function love.keypressed(key, scancode, isrepeat)
 		else
 			currentMonth = currentMonth + 1
 		end
+		calendarChanged = true
 	end
-	calendarChanged = true
+end
+
+function love.mousepressed(x, y, button, istouch, presses)
+    UIManager.mousePressed(x, y, button)
 end
 
 function love.update(dt)

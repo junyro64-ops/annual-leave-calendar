@@ -62,7 +62,7 @@ function Button:customDraw()
             image = self.graphicPress
         end
 
-        love.graphics.draw(image, self.x, self.y)
+        love.graphics.draw(image, 0, 0)
     end
 
     love.graphics.print(self.text, 10, 10)

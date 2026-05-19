@@ -162,13 +162,14 @@ function UIManager.draw()
     end
 
 	love.graphics.setFont(Fonts.medium)
-    local width = Fonts.medium:getWidth(week[1])
+    
     local height = Fonts.medium:getHeight()
     for i=1, #UIManager.weekDays do
         local element = UIManager.weekDays[i]
         if element.draw then
             element:draw()
         end
+        local width = Fonts.medium:getWidth(week[i])
 		love.graphics.print(
 			week[i], 
 			element.x + (CELL_SIZE.WEEKDAY.width - width)/2, 
