@@ -88,6 +88,8 @@ function UIManager.loadCalendar(year, month)
 
 	deleteCalendar()
 
+  --this block uses calendar manager
+  --needs to be decoupled later
 	--local nextMonth = month % 12 + 1
 	local previousMonth = (month - 2) % 12 + 1
 	local previousMonthYear = (previousMonth > month) and (year - 1) or year

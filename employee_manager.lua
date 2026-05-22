@@ -41,12 +41,6 @@ end
 function EmployeeManager.cancelLeave(data, year, month, date)
 end
 
--- this function should be called only in case when
---   the manager changes employee's annual leave start month
-function EmployeeManager.changeStartMonth(name, month)
-	EmployeeManager.database[name].leaveStartMonth = month
-end
-
 function EmployeeManager.useLeave(name, year, month, day, amount)
 	-- local data is just a pointer to the employee's database
 	-- everything updated on 'data' will actually be set to the employee's database
