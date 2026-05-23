@@ -4,6 +4,9 @@ local UIManager = {
     weekDays = {}
 }
 
+UIManager.popup = nil
+UIManager.activePopup = nil
+
 local Button = require("button")
 
 local CalendarManager = require("calendar_manager")
@@ -122,15 +125,34 @@ function UIManager.loadCalendar(year, month)
 end
 
 function UIManager.mousePressed(x, y, mouseButton)
+    if UIManager.activePopup then
+        local popup = UIManager.activePopup
+
+        if popup:isClicked(x, y) == false then
+            UIManager.activePopup = nil
+            return true
+        end
+
+        popup.mousepressed(x, y, mouseButton)
+        return true
+    end
+
     if mouseButton == 1 then
         for i = #UIManager.elements, 1, -1 do
             local element = UIManager.elements[i]
-            if x >= element.x and x <= (element.x + element.width) and
-                y >= element.y and y <= (element.y + element.height) then
+            if element:isClicked(x, y) == true then
                 if element.onClick then
                     element:onClick()
                 end
-
+                return true
+            end
+        end
+        for i = 1, #UIManager.currentCalendar do
+            local element = UIManager.currentCalendar[i]
+            if element:isClicked(x, y) == true then
+                if element.onClick then
+                    element:onClick()
+                end
                 return true
             end
         end
@@ -178,34 +200,16 @@ function UIManager.draw()
 			element.y + (CELL_SIZE.WEEKDAY.height - height)/2
 	    )
     end
+
+    if UIManager.activePopup then
+        UIManager.activePopup:draw()
+    end
     
 end
 
 function UIManager.dimBackground()
 	love.graphics.setColor(0, 0, 0, 0.5)
 	love.graphics.rectangle("fill", 0, 0, SCREEN_SIZE.width, SCREEN_SIZE.height)
-end
-
-function UIManager.popupScreen(message)
-	local x = (SCREEN_SIZE.width - POP_UP.width) / 2
-	local y = (SCREEN_SIZE.height - POP_UP.height) / 2
-
-	love.graphics.setColor(0.5, 0.5, 0.5)
-	love.graphics.rectangle("fill", x, y, POP_UP.width, POP_UP.height)
-
-	love.graphics.setColor(1, 1, 1)
-	love.graphics.setFont(Fonts.medium)
-
-	love.graphics.print(message, x + 20, y + 20)
-end
-
-function UIManager.debugMessage(error_message)
-	love.graphics.setFont(Fonts.medium)
-	love.graphics.print(
-		error_message, 
-		SCREEN_SIZE.width - Fonts.medium:getWidth(error_message), 
-		SCREEN_SIZE.height - Fonts.medium:getHeight()
-	)
 end
 
 return UIManager

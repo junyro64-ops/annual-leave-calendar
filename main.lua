@@ -4,18 +4,8 @@ local CalendarManager = require("calendar_manager")
 local EmployeeManager = require("employee_manager")
 local UIManager = require("ui_manager")
 
-local LoadFunctions = require("load_functions")
-local DrawFunctions = require("draw_functions")
-
 local SCREEN_SIZE = require("constants").SCREEN_SIZE
 local ERROR_CHECK = require("constants").ERROR_CHECK
-
---[[
-local currentCalendar = {}
-local cellDates = {}
-local weekDays = {"SUN", "MON", "TUE", "WED", "THU", "FRI", "SAT"}
-local weekdayCells = {}
-]]
 
 local currentYear, currentMonth
 
@@ -23,8 +13,11 @@ local debugCheck = false
 local error_message = ""
 local calendarChanged = false
 
+local popup = require("popup")
+
 function love.load()
-	local result, error_check
+
+	UIManager.popup = popup:new()
 
 	-- get the current system time
 	local currentDate = os.date("*t")
@@ -36,26 +29,16 @@ function love.load()
 	CalendarManager.createYearTree(currentYear - 1)
 	CalendarManager.createYearTree(currentYear + 1)
 
-  UIManager.loadWeekdays()
-  UIManager.loadCalendar(currentYear, currentMonth)
---[[
-	result, error_check = ErrorCheck.execute(LoadFunctions.loadEmployees, currentYear, currentMonth)
-	if error_check ~= ERROR_CHECK.SUCCESS then
-		debugCheck = true
-		error_message = error_check
-	end
-	--LoadFunctions.loadEmployees(currentYear, currentMonth)
-	weekdayCells = LoadFunctions.loadWeekdays(weekDays)
-	currentCalendar, cellDates = LoadFunctions.loadCalendar(currentYear, currentMonth)
-]]
-
-
+	UIManager.loadWeekdays()
+	UIManager.loadCalendar(currentYear, currentMonth)
 	love.window.setMode(SCREEN_SIZE.width, SCREEN_SIZE.height)
 	love.graphics.setBackgroundColor(1,1,1)
 
 end
 
 function love.keypressed(key, scancode, isrepeat)
+	if UIManager.activePopup then return end
+
 	if key == "left" then
 		if currentMonth == 1 then
 			currentMonth = 12
@@ -91,17 +74,7 @@ function love.update(dt)
 end
 
 function love.draw()
-
-	if debugCheck then
-		UIManager.debugMessage(error_message)
-		--debugCheck = false
-	end
 	
 	UIManager.draw()
-
---[[
-	DrawFunctions.drawWeekdays(weekdayCells, weekDays)
-	DrawFunctions.drawCalendar(currentCalendar, cellDates)
-	]]
 
 end
