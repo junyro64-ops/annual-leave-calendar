@@ -133,7 +133,7 @@ function UIManager.mousePressed(x, y, mouseButton)
             return true
         end
 
-        popup.mousepressed(x, y, mouseButton)
+        popup:mousepressed(x, y, mouseButton)
         return true
     end
 
@@ -202,6 +202,7 @@ function UIManager.draw()
     end
 
     if UIManager.activePopup then
+        UIManager.dimBackground()
         UIManager.activePopup:draw()
     end
     

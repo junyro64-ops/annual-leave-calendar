@@ -14,7 +14,7 @@ end
 
 function UIElement:isClicked(x, y)
     if x >= self.x and x <= (self.x + self.width) and
-        y <= self.y and y <= (self.y + self.height) then
+        y >= self.y and y <= (self.y + self.height) then
             return true
     end
 

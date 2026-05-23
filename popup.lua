@@ -18,11 +18,11 @@ function popup:new()
   instance.employeesOnLeave = {}
   instance.children = {}
 
-  local closeButton = Button:new(width - 40, 10, 30, 30, "X")
+  local closeButton = Button:new(width - 40, 5, 30, 30, "X")
   closeButton:setOnClick(
     function()
       local UIManager = require("ui_manager")
-      UIManager.activeModal = nil
+      UIManager.activePopup = nil
     end
   )
   table.insert(instance.children, closeButton)
@@ -44,7 +44,7 @@ function popup:setData(date, employees)
 end
 
 function popup:customDraw()
-  love.graphics.setColor(0.5, 0.5, 0.5)
+  love.graphics.setColor(1, 1, 1)
   love.graphics.rectangle("fill", 0, 0, width, height, 10, 10)
 
   for _, child in ipairs(self.children) do

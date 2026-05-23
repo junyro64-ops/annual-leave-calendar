@@ -17,8 +17,6 @@ local popup = require("popup")
 
 function love.load()
 
-	UIManager.popup = popup:new()
-
 	-- get the current system time
 	local currentDate = os.date("*t")
 	currentYear = currentDate.year
@@ -34,6 +32,7 @@ function love.load()
 	love.window.setMode(SCREEN_SIZE.width, SCREEN_SIZE.height)
 	love.graphics.setBackgroundColor(1,1,1)
 
+	UIManager.popup = popup:new()
 end
 
 function love.keypressed(key, scancode, isrepeat)
