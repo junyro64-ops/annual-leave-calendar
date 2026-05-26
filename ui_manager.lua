@@ -22,11 +22,7 @@ local SCREEN_SIZE = require("constants").SCREEN_SIZE
 local POP_UP = require("constants").POP_UP
 local MARGIN = require("constants").MARGIN
 
-local Fonts = {
-	large = love.graphics.newFont("font/NanumGothic.ttf", 45),
-	medium = love.graphics.newFont("font/NanumGothic.ttf", 26),
-	small = love.graphics.newFont("font/NanumGothic.ttf", 16)
-}
+local Fonts = require("constants").FONTS
 
 local function registerUI(element)
     table.insert(UIManager.elements, element)
@@ -129,8 +125,12 @@ function UIManager.loadCalendar(year, month)
     x = 100
     y = y + CELL_SIZE.DAY.height + 10
 
-    createButton(x, y, 200, 150, "사원추가")
+    local add_employee_button = createButton(x, y, 200, 50, "사원추가")
+    add_employee_button:setOnClick(
+        function()
 
+        end
+    )
 end
 
 function UIManager.mousePressed(x, y, mouseButton)

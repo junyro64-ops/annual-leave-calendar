@@ -40,6 +40,12 @@ Constants.CELL_SIZE = {
 
 Constants.CELL_COUNT = 42
 
+Constants.FONTS = {
+	large = love.graphics.newFont("font/NanumGothic.ttf", 45),
+	medium = love.graphics.newFont("font/NanumGothic.ttf", 26),
+	small = love.graphics.newFont("font/NanumGothic.ttf", 16)
+}
+
 Constants.LEAVE_AMOUNT = {
     LEAVE_AM_QUARTER = 0.25,
     LEAVE_PM_QUARTER = 0.25,
