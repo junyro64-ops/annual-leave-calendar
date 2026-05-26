@@ -45,8 +45,11 @@ local function deleteCalendar()
     cellDates = {}
 end
 
-function UIManager.createButton(x, y, width, height)
-    local button = Button:new(x, y, width, height)
+local function createButton(x, y, width, height, text, texture)
+    local button = Button:new(x, y, width, height, text)
+    if texture then
+        button.setGraphic(texture)
+    end
     registerUI(button)
     return button
 end
@@ -91,8 +94,7 @@ function UIManager.loadCalendar(year, month)
 
 	deleteCalendar()
 
-  --this block uses calendar manager
-  --needs to be decoupled later
+    --this block uses calendar manager
 	--local nextMonth = month % 12 + 1
 	local previousMonth = (month - 2) % 12 + 1
 	local previousMonthYear = (previousMonth > month) and (year - 1) or year
@@ -122,6 +124,13 @@ function UIManager.loadCalendar(year, month)
 			table.insert(cellDates, i - currentStartWeekday + 1)
 		end
 	end
+
+    -- add employee button position:
+    x = 100
+    y = y + CELL_SIZE.DAY.height + 10
+
+    createButton(x, y, 200, 150, "사원추가")
+
 end
 
 function UIManager.mousePressed(x, y, mouseButton)

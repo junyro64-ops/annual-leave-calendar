@@ -40,4 +40,20 @@ Constants.CELL_SIZE = {
 
 Constants.CELL_COUNT = 42
 
+Constants.LEAVE_AMOUNT = {
+    LEAVE_AM_QUARTER = 0.25,
+    LEAVE_PM_QUARTER = 0.25,
+    LEAVE_AM_HALF = 0.5,
+    LEAVE_PM_HALF = 0.5,
+    LEAVE_ONE_DAY = 1
+}
+
+Constants.LEAVE_NAME = {
+    LEAVE_AM_QUARTER = "오전반반차",
+    LEAVE_PM_QUARTER = "오후반반차",
+    LEAVE_AM_HALF = "오전반차",
+    LEAVE_PM_HALF = "오후반차",
+    LEAVE_ONE_DAY = "연차"
+}
+
 return Constants

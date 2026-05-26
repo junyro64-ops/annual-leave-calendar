@@ -38,7 +38,9 @@ function EmployeeManager.checkLeaveStart(data, year, month)
 	end
 end
 
-function EmployeeManager.cancelLeave(data, year, month, date)
+function EmployeeManager.cancelLeave(name, year, month, day)
+	local data = EmployeeManager.database[name]
+	data.leaveDates[year][month][day] = nil
 end
 
 function EmployeeManager.useLeave(name, year, month, day, amount)
