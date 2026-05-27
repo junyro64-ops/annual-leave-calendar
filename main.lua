@@ -13,7 +13,6 @@ local debugCheck = false
 local error_message = ""
 local calendarChanged = false
 
-local popup = require("popup")
 
 function love.load()
 
@@ -31,8 +30,6 @@ function love.load()
 	UIManager.loadCalendar(currentYear, currentMonth)
 	love.window.setMode(SCREEN_SIZE.width, SCREEN_SIZE.height)
 	love.graphics.setBackgroundColor(1,1,1)
-
-	UIManager.popup = popup:new()
 end
 
 function love.keypressed(key, scancode, isrepeat)

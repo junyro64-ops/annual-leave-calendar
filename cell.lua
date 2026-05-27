@@ -20,10 +20,14 @@ function Cell:onClick()
     local CELL_TYPE = require("constants").CELL_TYPE
     if self.type == CELL_TYPE.YEAR or self.type == CELL_TYPE.MONTH then return end
 
+    local width = 400
+    local height = 300
+    local x = (love.graphics.getWidth() - width) / 2
+    local y = (love.graphics.getHeight() - height) / 2
+    local PopupCell = require("popup_cell"):new(x, y, width, height)
+
     local UIManager = require("ui_manager")
-    
-    local popup = UIManager.popup
-    UIManager.activePopup = popup
+    UIManager.activePopup = PopupCell
 end
 
 function Cell:customDraw()

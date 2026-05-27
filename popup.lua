@@ -4,18 +4,11 @@ local Button = require("button")
 local popup = setmetatable({}, {__index = UIElement})
 popup.__index = popup
 
-local width = 400
-local height = 300
-
-function popup:new()
-  local x = (love.graphics.getWidth() - width) / 2
-  local y = (love.graphics.getHeight() - height) / 2
+function popup:new(x, y, width, height)
   
   local instance = UIElement:new(x, y, width, height)
   setmetatable(instance, popup)
 
-  instance.date = ""
-  instance.employeesOnLeave = {}
   instance.children = {}
 
   local closeButton = Button:new(width - 40, 5, 30, 30, "X")
@@ -26,14 +19,6 @@ function popup:new()
     end
   )
   table.insert(instance.children, closeButton)
-
-  local addButton = Button:new(20, height - 50, 100, 40, "Add")
-  addButton:setOnClick(
-    function()
-
-    end
-  )
-  table.insert(instance.children, addButton)
   
   return instance
 end
