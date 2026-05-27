@@ -6,7 +6,7 @@ function ErrorCheck.execute(func, ...)
 
     -- pcall resulting in fail is a fatal engine crash
     if not success then
-        return nil, ERROR_CHECK.CHRASHED
+        return nil, ERROR_CHECK.CRASHED
     end
 
     if result == ERROR_CHECK.FAILED or 

@@ -26,6 +26,7 @@ local Fonts = require("constants").FONTS
 local PopupCell = require("popup_cell")
 
 local function deleteCalendar()
+    UIManager.elements = {}
     UIManager.currentCalendar = {}
     cellDates = {}
 end

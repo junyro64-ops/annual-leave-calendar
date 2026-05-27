@@ -43,6 +43,9 @@ function EmployeeManager.cancelLeave(name, year, month, day)
 	data.leaveDates[year][month][day] = nil
 end
 
+-- The current function below might cause an issue when 
+--  an employee registers another leave on the same day.
+-- This must be looked over later.
 function EmployeeManager.useLeave(name, year, month, day, amount)
 	-- local data is just a pointer to the employee's database
 	-- everything updated on 'data' will actually be set to the employee's database
