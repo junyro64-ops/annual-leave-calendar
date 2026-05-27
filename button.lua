@@ -3,8 +3,6 @@ local UIElement = require("ui_element")
 local Button = setmetatable({}, {__index = UIElement})
 Button.__index = Button
 
-local Fonts = require("constants").FONTS
-
 local STATE = {
     IDLE = "IDLE", 
     HOVER = "HOVER", 
@@ -62,9 +60,9 @@ function Button:customDraw()
     elseif self.drawLine == true then
         love.graphics.rectangle("line", 0, 0, self.width, self.height)
     end
-    love.graphics.setFont(Fonts.medium)
-    local width = Fonts.medium:getWidth(self.text)
-    local height = Fonts.medium:getHeight()
+    love.graphics.setFont(self.Fonts.medium)
+    local width = self.Fonts.medium:getWidth(self.text)
+    local height = self.Fonts.medium:getHeight()
     love.graphics.print(self.text, (self.width - width) / 2, (self.height - height) / 2)
 end
 

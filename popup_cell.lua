@@ -8,8 +8,7 @@ function PopupCell:new(width, height, year, month, day)
     local instance = popup:new(width, height)
     setmetatable(instance, PopupCell)
 
-    local obs = os.date("*t", os.time{year = year, month = month, day = day})
-    instance.date = os.date("%Y/%m/%d")
+    instance.date = string.format("%02d/%02d/%02d", year, month, day)
     instance.employeesOnLeave = {}
 
     local addButton = Button:new(20, height - 50, 120, 40, "연차신청")
@@ -20,6 +19,9 @@ function PopupCell:new(width, height, year, month, day)
     )
     addButton:setDrawLine()
     table.insert(instance.children, addButton)
+
+    local setDate = Button:new(0, 0, 200, 50, instance.date)
+    table.insert(instance.children, setDate)
 
     return instance
 end

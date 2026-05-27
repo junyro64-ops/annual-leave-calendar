@@ -10,6 +10,7 @@ function UIElement:new(x, y, width, height)
     }
     setmetatable(instance, self)
 
+    instance.Fonts = require("constants").FONTS
     instance.callback = nil
 
     return instance

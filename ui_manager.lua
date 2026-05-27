@@ -4,7 +4,6 @@ local UIManager = {
     weekDays = {}
 }
 
-UIManager.popup = nil
 UIManager.activePopup = nil
 
 local Button = require("button")
@@ -82,7 +81,7 @@ local function setCellPopup(cell, width, height, year, month, day)
             local x = (love.graphics.getWidth() - width) / 2
             local y = (love.graphics.getHeight() - height) / 2
 
-            local popupCell = PopupCell:new(width, height, year, month,day)
+            local popupCell = PopupCell:new(width, height, year, month, day)
             UIManager.activePopup = popupCell
         end
     )
@@ -123,7 +122,7 @@ function UIManager.loadCalendar(year, month)
 			table.insert(cellDates, i - currentLastDay)
 		else
 			table.insert(cellDates, i - currentStartWeekday + 1)
-            setCellPopup(dayCell, 400, 300, year, month, i)
+            setCellPopup(dayCell, 400, 300, year, month, i - currentStartWeekday + 1)
 		end
 
         table.insert(UIManager.currentCalendar, dayCell)
