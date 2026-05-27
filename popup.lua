@@ -30,7 +30,7 @@ end
 
 function popup:customDraw()
   love.graphics.setColor(1, 1, 1)
-  love.graphics.rectangle("fill", 0, 0, width, height, 10, 10)
+  love.graphics.rectangle("fill", 0, 0, self.width, self.height, 10, 10)
 
   for _, child in ipairs(self.children) do
     child:draw()
