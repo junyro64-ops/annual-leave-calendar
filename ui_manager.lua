@@ -24,6 +24,8 @@ local MARGIN = require("constants").MARGIN
 
 local Fonts = require("constants").FONTS
 
+local PopupCell = require("popup_cell")
+
 local function registerUI(element)
     table.insert(UIManager.elements, element)
 end
