@@ -4,8 +4,11 @@ local Button = require("button")
 local popup = setmetatable({}, {__index = UIElement})
 popup.__index = popup
 
-function popup:new(x, y, width, height)
-  
+function popup:new(width, height)
+  local screen_x, screen_y = love.graphics.getDimensions()
+  local x = (screen_x - width) / 2
+  local y = (screen_y - height) / 2
+
   local instance = UIElement:new(x, y, width, height)
   setmetatable(instance, popup)
 
@@ -18,14 +21,14 @@ function popup:new(x, y, width, height)
       UIManager.activePopup = nil
     end
   )
+  closeButton:setDrawLine()
   table.insert(instance.children, closeButton)
   
   return instance
 end
 
-function popup:setData(date, employees)
-  self.date = date
-  self.employeesOnLeave = employees
+function popup:addChild(element)
+  table.insert(self.children, element)
 end
 
 function popup:customDraw()

@@ -26,18 +26,6 @@ local Fonts = require("constants").FONTS
 
 local PopupCell = require("popup_cell")
 
-local function registerUI(element)
-    table.insert(UIManager.elements, element)
-end
-
-local function registerCalendar(cell)
-    table.insert(UIManager.currentCalendar, cell)
-end
-
-local function registerWeekdays(cell)
-    table.insert(UIManager.weekDays, cell)
-end
-
 local function deleteCalendar()
     UIManager.currentCalendar = {}
     cellDates = {}
@@ -48,7 +36,7 @@ local function createButton(x, y, width, height, text, texture)
     if texture then
         button.setGraphic(texture)
     end
-    registerUI(button)
+    table.insert(UIManager.elements, button)
     return button
 end
 
@@ -81,10 +69,23 @@ function UIManager.loadWeekdays()
     
 	for i=1, #week do
         x, y = calculatePos(CELL_TYPE.WEEKDAY, i)
-		registerWeekdays(
-            Cell:new(x, y, CELL_SIZE.WEEKDAY.width, CELL_SIZE.WEEKDAY.height, CELL_TYPE.WEEKDAY, i)
-        )
+		local weekCell = Cell:new(x, y, CELL_SIZE.WEEKDAY.width, CELL_SIZE.WEEKDAY.height, CELL_TYPE.WEEKDAY, i)
+        table.insert(UIManager.weekDays, weekCell)
 	end
+end
+
+local function setCellPopup(cell, width, height, year, month, day)
+    cell:setOnClick(
+        function()
+            if cell.type == CELL_TYPE.YEAR or cell.type == CELL_TYPE.MONTH then return end
+
+            local x = (love.graphics.getWidth() - width) / 2
+            local y = (love.graphics.getHeight() - height) / 2
+
+            local popupCell = PopupCell:new(width, height, year, month,day)
+            UIManager.activePopup = popupCell
+        end
+    )
 end
 
 function UIManager.loadCalendar(year, month)
@@ -103,16 +104,18 @@ function UIManager.loadCalendar(year, month)
 	--Insert the year and the month on the calendar and cellDates table for initialization
     -- year cell:
     x, y = calculatePos(CELL_TYPE.YEAR, year)
-	registerCalendar(Cell:new(x, y, CELL_SIZE.YEAR.width, CELL_SIZE.YEAR.height, CELL_TYPE.YEAR, year))
+	local yearCell = Cell:new(x, y, CELL_SIZE.YEAR.width, CELL_SIZE.YEAR.height, CELL_TYPE.YEAR, year)
+    table.insert(UIManager.currentCalendar, yearCell)
     -- month cell:
     x, y = calculatePos(CELL_TYPE.MONTH, month)
-	registerCalendar(Cell:new(x, y, CELL_SIZE.MONTH.width, CELL_SIZE.MONTH.height, CELL_TYPE.MONTH, month))
+	local monthCell = Cell:new(x, y, CELL_SIZE.MONTH.width, CELL_SIZE.MONTH.height, CELL_TYPE.MONTH, month)
+    table.insert(UIManager.currentCalendar, monthCell)
 	table.insert(cellDates, year)
 	table.insert(cellDates, month)
     -- day cell:
 	for i=1, CELL_COUNT do
         x, y = calculatePos(CELL_TYPE.DAY, i)
-		registerCalendar(Cell:new(x, y, CELL_SIZE.DAY.width, CELL_SIZE.DAY.height, CELL_TYPE.DAY, i))
+        local dayCell = Cell:new(x, y, CELL_SIZE.DAY.width, CELL_SIZE.DAY.height, CELL_TYPE.DAY, i)
 		
 		if i < currentStartWeekday then
 			table.insert(cellDates, previousMonthLastDay - (currentStartWeekday - i) + 1)
@@ -120,7 +123,10 @@ function UIManager.loadCalendar(year, month)
 			table.insert(cellDates, i - currentLastDay)
 		else
 			table.insert(cellDates, i - currentStartWeekday + 1)
+            setCellPopup(dayCell, 400, 300, year, month, i)
 		end
+
+        table.insert(UIManager.currentCalendar, dayCell)
 	end
 
     -- add employee button position:
@@ -133,6 +139,7 @@ function UIManager.loadCalendar(year, month)
 
         end
     )
+    add_employee_button:setDrawLine()
 end
 
 function UIManager.mousePressed(x, y, mouseButton)

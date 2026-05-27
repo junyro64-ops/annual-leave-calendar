@@ -14,8 +14,6 @@ local STATE = {
 function Button:new(x, y, width, height, text)
     local instance = UIElement:new(x, y, width, height)
 
-    instance.callback = nil
-
     instance.state = STATE.IDLE
     instance.text = text
 
@@ -24,19 +22,15 @@ function Button:new(x, y, width, height, text)
     instance.graphicHover = nil
     instance.graphicPress = nil
 
+    instance.drawLine = false
+
     setmetatable(instance, Button)
 
     return instance
 end
 
-function Button:onClick()
-    if self.callback then
-        self.callback()
-    end
-end
-
-function Button:setOnClick(callback)
-    self.callback = callback
+function Button:setDrawLine()
+    self.drawLine = true
 end
 
 function Button:setGraphic(idle_image, hover_image, pressed_image)
@@ -65,7 +59,7 @@ function Button:customDraw()
         end
 
         love.graphics.draw(image, 0, 0)
-    else
+    elseif self.drawLine == true then
         love.graphics.rectangle("line", 0, 0, self.width, self.height)
     end
     love.graphics.setFont(Fonts.medium)

@@ -14,22 +14,6 @@ function Cell:new(x, y, width, height, type, index)
     return instance
 end
 
-function Cell:onClick()
-    
-    -- skip year and month cells when clicked
-    local CELL_TYPE = require("constants").CELL_TYPE
-    if self.type == CELL_TYPE.YEAR or self.type == CELL_TYPE.MONTH then return end
-
-    local width = 400
-    local height = 300
-    local x = (love.graphics.getWidth() - width) / 2
-    local y = (love.graphics.getHeight() - height) / 2
-    local PopupCell = require("popup_cell"):new(x, y, width, height)
-
-    local UIManager = require("ui_manager")
-    UIManager.activePopup = PopupCell
-end
-
 function Cell:customDraw()
     
     love.graphics.rectangle("line", 0, 0, self.width, self.height)

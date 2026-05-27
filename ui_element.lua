@@ -9,7 +9,14 @@ function UIElement:new(x, y, width, height)
         height = height or 0
     }
     setmetatable(instance, self)
+
+    instance.callback = nil
+
     return instance
+end
+
+function UIElement:setOnClick(callback)
+    self.callback = callback
 end
 
 function UIElement:isClicked(x, y)
@@ -22,6 +29,9 @@ function UIElement:isClicked(x, y)
 end
 
 function UIElement:onClick()
+    if self.callback then
+        self.callback()
+    end
 end
 
 function UIElement:draw()
