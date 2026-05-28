@@ -6,6 +6,8 @@ local EmployeeManager = {}
 EmployeeManager.database = {}
 
 function EmployeeManager.addEmployee(name, maxLeave, year, month)
+	if EmployeeManager.database[name] then return ERROR_CHECK.DATA_EXIST end
+	
 	EmployeeManager.database[name] = {
 		name = name,
 		maxLeave = maxLeave,
@@ -14,6 +16,8 @@ function EmployeeManager.addEmployee(name, maxLeave, year, month)
 		usedLeave = 0,
 		leaveDates = {}
 	}
+
+	return ERROR_CHECK.SUCCESS
 end
 
 function EmployeeManager.getEmployeeData(name)

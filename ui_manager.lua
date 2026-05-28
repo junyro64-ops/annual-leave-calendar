@@ -4,11 +4,12 @@ local UIManager = {
     weekDays = {}
 }
 
-UIManager.activePopup = nil
+UIManager.activePopup = {}
 
 local Button = require("button")
 
 local CalendarManager = require("calendar_manager")
+local EmployeeManager = require("employee_manager")
 
 local Cell = require("cell")
 local CELL_COUNT = require("constants").CELL_COUNT
@@ -18,12 +19,11 @@ local cellDates = {}
 local week = {"SUN", "MON", "TUE", "WED", "THU", "FRI", "SAT"}
 
 local SCREEN_SIZE = require("constants").SCREEN_SIZE
-local POP_UP = require("constants").POP_UP
 local MARGIN = require("constants").MARGIN
 
 local Fonts = require("constants").FONTS
 
-local PopupCell = require("popup_cell")
+local popup = require("popup")
 
 local function deleteCalendar()
     UIManager.elements = {}
@@ -68,7 +68,7 @@ local function calculatePos(type, index)
 end
 
 function UIManager:update(dt)
-    if UIManager.activePopup then return end
+    if #UIManager.activePopup > 0 then return end
 
     for i=1, #UIManager.elements do
         local element = UIManager.elements[i]
@@ -88,16 +88,35 @@ function UIManager.loadWeekdays()
 	end
 end
 
+local function closePopup()
+    if #UIManager.activePopup then
+        table.remove(UIManager.activePopup)
+    end
+end
+
 local function setCellPopup(cell, width, height, year, month, day)
     cell:setOnClick(
         function()
             if cell.type == CELL_TYPE.YEAR or cell.type == CELL_TYPE.MONTH then return end
 
-            local x = (love.graphics.getWidth() - width) / 2
-            local y = (love.graphics.getHeight() - height) / 2
+            local popupCell = popup:new(width, height, closePopup)
 
-            local popupCell = PopupCell:new(width, height, year, month, day)
-            UIManager.activePopup = popupCell
+            local date = string.format("%02d/%02d/%02d", year, month, day)
+            local setDate = Button:new(0, 0, 200, 50, date)
+            popupCell:addChild(setDate)
+            
+            local applyLeaveButton = Button:new(20, height - 50, 120, 40, "연차신청")
+            applyLeaveButton:setOnClick(
+                function()
+                    local applyLeavePopup = popup:new(300, 200, closePopup)
+                    table.insert(UIManager.activePopup, applyLeavePopup)
+                end
+            )
+            applyLeaveButton:setDrawLine()
+            popupCell:addChild(applyLeaveButton)
+            popupCell.employeesOnLeave = {}
+
+            table.insert(UIManager.activePopup, popupCell)
         end
     )
 end
@@ -137,6 +156,8 @@ function UIManager.loadCalendar(year, month)
 			table.insert(cellDates, i - currentLastDay)
 		else
 			table.insert(cellDates, i - currentStartWeekday + 1)
+
+            -- creates a popup when the cell is clicked
             setCellPopup(dayCell, 400, 300, year, month, i - currentStartWeekday + 1)
 		end
 
@@ -157,15 +178,19 @@ function UIManager.loadCalendar(year, month)
 end
 
 function UIManager.mousePressed(x, y, mouseButton)
-    if UIManager.activePopup then
-        local popup = UIManager.activePopup
+    if #UIManager.activePopup > 0 then
+        local topIndex = #UIManager.activePopup
+        local topPopup = UIManager.activePopup[topIndex]
 
-        if popup:isClicked(x, y) == false then
-            UIManager.activePopup = nil
+        if topPopup:isClicked(x, y) == false then
+            table.remove(UIManager.activePopup, topIndex)
             return true
         end
 
-        popup:mousepressed(x, y, mouseButton)
+        if topPopup.mousePressed then
+            topPopup:mousePressed(x, y, mouseButton)
+        end
+
         return true
     end
 
@@ -233,9 +258,11 @@ function UIManager.draw()
 	    )
     end
 
-    if UIManager.activePopup then
-        UIManager.dimBackground()
-        UIManager.activePopup:draw()
+    if #UIManager.activePopup > 0 then
+        for i=1, #UIManager.activePopup do
+            UIManager.dimBackground()
+            UIManager.activePopup[i]:draw()
+        end
     end
     
 end
