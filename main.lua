@@ -32,8 +32,23 @@ function love.load()
 	love.graphics.setBackgroundColor(1,1,1)
 end
 
+function love.textedited(text, start, length)
+	if #UIManager.activePopup > 0 then
+		UIManager.textedited(text, start, length)
+	end
+end
+
+function love.textinput(t)
+	if #UIManager.activePopup > 0 then
+		UIManager.textinput(t)
+	end
+end
+
 function love.keypressed(key, scancode, isrepeat)
-	if UIManager.activePopup then return end
+	if #UIManager.activePopup > 0 then
+		UIManager.keypressed(key)
+		return 
+	end
 
 	if key == "left" then
 		if currentMonth == 1 then

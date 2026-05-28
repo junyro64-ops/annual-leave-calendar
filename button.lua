@@ -15,6 +15,8 @@ function Button:new(x, y, width, height, text)
     instance.state = STATE.IDLE
     instance.text = text
 
+    instance.textToLeft = false
+
     instance.hasGraphic = false
     instance.graphicIdle = nil
     instance.graphicHover = nil
@@ -27,8 +29,9 @@ function Button:new(x, y, width, height, text)
     return instance
 end
 
-function Button:update(dt)
-    local x, y = love.mouse.getPosition()
+function Button:update(dt, mouse_x, mouse_y)
+    local x = mouse_x or love.mouse.getX()
+    local y = mouse_y or love.mouse.getY()
 
     local isHovering = self:isClicked(x, y)
 
@@ -61,6 +64,10 @@ function Button:setGraphic(idle_image, hover_image, pressed_image)
 
 end
 
+function Button:setTextToLeft()
+    self.textToLeft = true
+end
+
 function Button:customDraw()
 
     if self.hasGraphic then
@@ -80,7 +87,12 @@ function Button:customDraw()
     love.graphics.setFont(self.Fonts.medium)
     local width = self.Fonts.medium:getWidth(self.text)
     local height = self.Fonts.medium:getHeight()
-    love.graphics.print(self.text, (self.width - width) / 2, (self.height - height) / 2)
+    local x_pos = (self.width - width) / 2
+    local y_pos = (self.height - height) / 2
+    if self.textToLeft then
+        x_pos = 0
+    end
+    love.graphics.print(self.text, x_pos, y_pos)
 end
 
 return Button

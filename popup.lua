@@ -28,6 +28,34 @@ function popup:new(width, height, onClose)
 	return instance
 end
 
+function popup:textedited(text, start, legnth)
+	for _, element in ipairs(self.children) do
+		if element.isActive and element.edit then
+			element:edit(text)
+		end
+	end
+end
+
+function popup:textinput(t)
+	for _, element in ipairs(self.children) do
+		if element.isActive and element.addText then
+			element:addText(t)
+		end
+	end
+end
+
+function popup:keypressed(key)
+	for _, element in ipairs(self.children) do
+		if element.isActive then
+			if key == "backspace" then
+				element:removeText()
+			elseif key == "return" then
+				element.isActive = false
+			end
+		end
+	end
+end
+
 function popup:addChild(element)
 	table.insert(self.children, element)
 end
@@ -41,14 +69,32 @@ function popup:customDraw()
 	end
 end
 
-function popup:mousePressed(screenX, screenY, button)
-	local x = screenX - self.x
-	local y = screenY - self.y
+local function getGlobalCoordinates(self)
+	local x, y = love.mouse.getPosition()
+	return x - self.x, y - self.y
+end
+
+function popup:update(dt)
+	local x, y = getGlobalCoordinates(self)
 
 	for _, child in ipairs(self.children) do
-		if child:isClicked(x, y) then
-			if child.onClick then
-				child:onClick()
+		if child.update then
+			child:update(dt, x, y)
+		end
+	end
+end
+
+function popup:mousePressed(button)
+	local x, y = getGlobalCoordinates(self)
+
+	for _, element in ipairs(self.children) do
+		element.isActive = false
+	end
+
+	for _, element in ipairs(self.children) do
+		if element:isClicked(x, y) then
+			if element.onClick then
+				element:onClick()
 			end
 			return true
 		end
