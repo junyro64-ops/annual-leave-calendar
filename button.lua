@@ -27,6 +27,22 @@ function Button:new(x, y, width, height, text)
     return instance
 end
 
+function Button:update(dt)
+    local x, y = love.mouse.getPosition()
+
+    local isHovering = self:isClicked(x, y)
+
+    if isHovering then
+        if love.mouse.isDown(1) then
+            self.state = STATE.PRESSED
+        else
+            self.state = STATE.HOVER
+        end
+    else
+        self.state = STATE.IDLE
+    end
+end
+
 function Button:setDrawLine()
     self.drawLine = true
 end
@@ -55,11 +71,12 @@ function Button:customDraw()
         elseif self.state == STATE.PRESSED and self.graphicPress then
             image = self.graphicPress
         end
-
+        love.graphics.setColor(1,1,1)
         love.graphics.draw(image, 0, 0)
     elseif self.drawLine == true then
         love.graphics.rectangle("line", 0, 0, self.width, self.height)
     end
+
     love.graphics.setFont(self.Fonts.medium)
     local width = self.Fonts.medium:getWidth(self.text)
     local height = self.Fonts.medium:getHeight()

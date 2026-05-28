@@ -31,11 +31,14 @@ local function deleteCalendar()
     cellDates = {}
 end
 
-local function createButton(x, y, width, height, text, texture)
+local function createButton(x, y, width, height, text)
     local button = Button:new(x, y, width, height, text)
-    if texture then
-        button.setGraphic(texture)
-    end
+    
+    button:setGraphic(
+        love.graphics.newImage("ui/button_idle.png"),
+        love.graphics.newImage("ui/button_hover.png"),
+        love.graphics.newImage("ui/button_click.png")
+    )
     table.insert(UIManager.elements, button)
     return button
 end
@@ -62,6 +65,17 @@ local function calculatePos(type, index)
     end
 
     return x, y
+end
+
+function UIManager:update(dt)
+    if UIManager.activePopup then return end
+
+    for i=1, #UIManager.elements do
+        local element = UIManager.elements[i]
+        if element.update then
+            element:update(dt)
+        end
+    end
 end
 
 function UIManager.loadWeekdays()
@@ -139,7 +153,7 @@ function UIManager.loadCalendar(year, month)
 
         end
     )
-    add_employee_button:setDrawLine()
+    --add_employee_button:setDrawLine()
 end
 
 function UIManager.mousePressed(x, y, mouseButton)

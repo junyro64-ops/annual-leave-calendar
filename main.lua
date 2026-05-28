@@ -67,6 +67,7 @@ function love.update(dt)
 		UIManager.loadCalendar(currentYear, currentMonth)
 		calendarChanged = false
 	end
+	UIManager:update(dt)
 end
 
 function love.draw()
