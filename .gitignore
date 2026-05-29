@@ -1,5 +1,7 @@
 .vscode/
 font/
+ui/
+save/
 *.zip
 *.exe
 .env

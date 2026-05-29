@@ -13,8 +13,9 @@ function popup:new(width, height, onClose)
 	setmetatable(instance, popup)
 
 	instance.children = {}
+	instance.is_scrollable = false
 
-	local closeButton = Button:new(width - 40, 5, 30, 30, "X")
+	local closeButton = Button:new(width - 45, 15, 30, 30, "X")
 	closeButton:setOnClick(
 		function()
 			if onClose then
@@ -66,9 +67,14 @@ function popup:customDraw()
 
 	love.graphics.setScissor(self.x + 10, self.y + 10, self.width - 20, self.height - 20)
 
+	love.graphics.push()
+	love.graphics.translate(0, self.scrollY or 0)
+
 	for _, child in ipairs(self.children) do
 		child:draw()
 	end
+
+	love.graphics.pop()
 
 	love.graphics.setScissor()
 end
