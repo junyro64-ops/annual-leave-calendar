@@ -1,9 +1,11 @@
--- employee_manager.lua
-
-local ERROR_CHECK = require("constants").ERROR_CHECK
 
 local EmployeeManager = {}
 EmployeeManager.database = {}
+
+local json = require("json")
+local ERROR_CHECK = require("constants").ERROR_CHECK
+
+local saveFileName = "employee_data.json"
 
 function EmployeeManager.addEmployee(name, maxLeave, year, month)
 	if EmployeeManager.database[name] then return ERROR_CHECK.DATA_EXIST end
@@ -69,6 +71,30 @@ function EmployeeManager.useLeave(name, year, month, day, amount)
 	data.leaveDates[year][month][day] = amount
 
 	return ERROR_CHECK.SUCCESS
+end
+
+function EmployeeManager.saveData()
+	local jsonData = json.encode(EmployeeManager.database)
+
+	local success, message = love.filesystem.write(saveFileName, jsonData)
+
+	if success then
+		print("Successfully saved!")
+	else
+		print("Failed: " .. tostring(message))
+	end
+end
+
+function EmployeeManager.loadData()
+	if love.filesystem.getInfo(saveFileName) then
+		local contents = love.filesystem.read(saveFileName)
+
+		EmployeeManager.database = json.decode(contents)
+		print("Successfully loaded!")
+	else
+		print("No save file found. Starting a new database.")
+		EmployeeManager.database = {}
+	end
 end
 
 return EmployeeManager

@@ -15,6 +15,7 @@ local calendarChanged = false
 
 
 function love.load()
+	EmployeeManager.loadData()
 
 	-- get the current system time
 	local currentDate = os.date("*t")
@@ -93,4 +94,9 @@ function love.draw()
 	
 	UIManager.draw()
 
+end
+
+function love.quit()
+	EmployeeManager.saveData()
+	return false
 end
