@@ -21,6 +21,8 @@ local week = {"SUN", "MON", "TUE", "WED", "THU", "FRI", "SAT"}
 local SCREEN_SIZE = require("constants").SCREEN_SIZE
 local MARGIN = require("constants").MARGIN
 
+local ERROR_CHECK = require("constants").ERROR_CHECK
+
 local Fonts = require("constants").FONTS
 
 local popup = require("popup")
@@ -36,14 +38,6 @@ local function deleteCalendar()
     UIManager.elements = {}
     UIManager.currentCalendar = {}
     cellDates = {}
-end
-
-local function createButton(x, y, width, height, text)
-    local button = Button:new(x, y, width, height, text)
-    
-    button:setGraphic(ButtonGraphics.idle, ButtonGraphics.hover, ButtonGraphics.click)
-    table.insert(UIManager.elements, button)
-    return button
 end
 
 local function calculatePos(type, index)
@@ -97,9 +91,11 @@ function UIManager.textedited(text, start, length)
 end
 
 function UIManager.textinput(t)
-    local popup = UIManager.activePopup[#UIManager.activePopup]
-    if popup.textinput then
-        popup:textinput(t)
+    if #UIManager.activePopup > 0 then
+        local popup = UIManager.activePopup[#UIManager.activePopup]
+        if popup.textinput then
+            popup:textinput(t)
+        end
     end
 end
 
@@ -126,6 +122,17 @@ local function closePopup()
     if #UIManager.activePopup > 0 then
         table.remove(UIManager.activePopup)
     end
+end
+
+local function error_message_popup(text)
+    local popup = popup:new(500, 200, closePopup)
+    local width = Fonts.medium:getWidth(text)
+    local height = Fonts.medium:getHeight()
+    local x = (500 - width) / 2
+    local y = (200 - height) / 2
+    local textMessage = Button:new(x, y, width, height, text)
+    popup:addChild(textMessage)
+    return popup
 end
 
 local function openApplyLeavePopup()
@@ -160,12 +167,19 @@ local function setCellPopup(cell, width, height, year, month, day)
     )
 end
 
+local function createButton(x, y, width, height, text)
+    local button = Button:new(x, y, width, height, text)
+    
+    button:setGraphic(ButtonGraphics.idle, ButtonGraphics.hover, ButtonGraphics.click)
+    return button
+end
+
 local function setInputTitles(popup, x, y, text)
     local width = 300
     local height = 100
     local inputTitle = Button:new(x, y, width, height, text)
     inputTitle:setTextToLeft()
-    inputTitle:setDrawLine()
+    --inputTitle:setDrawLine()
     popup:addChild(inputTitle)
 end
 
@@ -175,12 +189,56 @@ local function addEmployee()
     local y = 100
     setInputTitles(popup, x, y,     "이름")
     setInputTitles(popup, x, y * 2, "총 연차 회수")
-    setInputTitles(popup, x, y * 3, "연차 시작 연")
+    setInputTitles(popup, x, y * 3, "연차 시작 연도")
     setInputTitles(popup, x, y * 4, "연차 시작 월")
     local nameInput = TextInput:new(x + 300, y, 300, 100)
     popup:addChild(nameInput)
     local maxLeaveInput = TextInput:new(x + 300, y * 2, 300, 100)
     popup:addChild(maxLeaveInput)
+    local startYearInput = TextInput:new(x + 300, y * 3, 300, 100)
+    popup:addChild(startYearInput)
+    local startMonthInput = TextInput:new(x + 300, y * 4, 300, 100)
+    popup:addChild(startMonthInput)
+
+    local confirm = createButton(x + 100, y * 5, 200, 50, "확인")
+    popup:addChild(confirm)
+
+    confirm:setOnClick(
+        function()
+            local name = nameInput:returnText()
+            local maxLeave = tonumber(maxLeaveInput:returnText())
+            local startYear = tonumber(startMonthInput:returnText())
+            local startMonth = tonumber(startMonthInput:returnText())
+
+            if name == nil or maxLeave == nil or startYear == nil or startMonth == nil then
+                local error_popup = error_message_popup("입력 오류")
+                table.insert(UIManager.activePopup, error_popup)
+                return
+            end
+
+            if EmployeeManager.getEmployeeData(name) then
+                local error_popup = error_message_popup("이미 등록된 사원입니다")
+                table.insert(UIManager.activePopup, error_popup)
+                return
+            end
+
+            EmployeeManager.addEmployee(name, maxLeave, startYear, startMonth)
+
+            local success_popup = error_message_popup("성공")
+            table.insert(UIManager.activePopup, success_popup)
+        end
+    )
+
+    table.insert(UIManager.activePopup, popup)
+end
+
+local function showEmployee()
+    local popup = popup:new(800, 600, closePopup)
+
+    local employees = EmployeeManager.database
+    for i=1, #employees do
+        local employee = Button:new()
+    end
 
     table.insert(UIManager.activePopup, popup)
 end
@@ -233,9 +291,18 @@ function UIManager.loadCalendar(year, month)
     y = y + CELL_SIZE.DAY.height + 10
 
     local add_employee_button = createButton(x, y, 200, 50, "사원추가")
+    table.insert(UIManager.elements, add_employee_button)
     add_employee_button:setOnClick(
         function()
             addEmployee()
+        end
+    )
+
+    local show_employee_button = createButton(x + 200 +50, y, 200, 50, "등록사원")
+    table.insert(UIManager.elements, show_employee_button)
+    show_employee_button:setOnClick(
+        function()
+            showEmployee()
         end
     )
 end

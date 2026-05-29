@@ -53,6 +53,10 @@ function TextInput:removeText()
     end
 end
 
+function TextInput:returnText()
+    return self.text
+end
+
 function TextInput:onClick()
     self.isActive = true
 end
@@ -80,12 +84,12 @@ function TextInput:customDraw()
         displayText = self.placeholder
     end
 
-    love.graphics.print(displayText, 10, self.height / 2 - 8)
+    love.graphics.print(displayText, 10, self.height / 2 - 15)
 
     if self.showCursor then
         love.graphics.setColor(0, 0, 0)
         local textWidth = love.graphics.getFont():getWidth(displayText)
-        love.graphics.line(10 + textWidth + 2, 5, 10 + textWidth + 2, self.height - 5)
+        love.graphics.line(10 + textWidth + 2, 35, 10 + textWidth + 2, self.height - 35)
     end
 end
 
