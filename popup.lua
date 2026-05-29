@@ -64,9 +64,13 @@ function popup:customDraw()
 	love.graphics.setColor(1, 1, 1)
 	love.graphics.rectangle("fill", 0, 0, self.width, self.height, 10, 10)
 
+	love.graphics.setScissor(self.x + 10, self.y + 10, self.width - 20, self.height - 20)
+
 	for _, child in ipairs(self.children) do
 		child:draw()
 	end
+
+	love.graphics.setScissor()
 end
 
 local function getGlobalCoordinates(self)

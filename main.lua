@@ -32,6 +32,10 @@ function love.load()
 	love.graphics.setBackgroundColor(1,1,1)
 end
 
+function love.wheelmoved(x, y)
+	UIManager.wheelmoved(x, y)
+end
+
 function love.textedited(text, start, length)
 	if #UIManager.activePopup > 0 then
 		UIManager.textedited(text, start, length)

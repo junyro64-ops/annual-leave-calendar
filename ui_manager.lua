@@ -307,6 +307,28 @@ function UIManager.loadCalendar(year, month)
     )
 end
 
+function UIManager.wheelmoved(x, y)
+    if UIManager.activePopup > 0 then
+        local popup = UIManager.activePopup[#UIManager.activePopup]
+        popup.scrollY = popup.scrollY or 0
+
+        local scrollSpeed = 40
+        popup.scrollY = popup.scrollY + (y * scrollSpeed)
+
+        local buttonHeight = 50
+        local totalListHeight = #popup.children * buttonHeight
+        local listWindowHeight = popup.height - 20
+
+        local maxScroll = math.min(0, listWindowHeight - totalListHeight)
+
+        if popup.scrollY > 0 then
+            popup.scrollY = 0
+        elseif popup.scrollY < maxScroll then
+            popup.scrollY = maxScroll
+        end
+    end
+end
+
 function UIManager.mousePressed(x, y, mouseButton)
     if #UIManager.activePopup > 0 then
         local topIndex = #UIManager.activePopup
