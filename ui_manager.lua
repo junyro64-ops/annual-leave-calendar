@@ -26,36 +26,6 @@ local ERROR_CHECK = require("constants").ERROR_CHECK
 
 local Fonts = require("constants").FONTS
 
-local function deleteCalendar()
-    UIManager.elements = {}
-    UIManager.currentCalendar = {}
-    cellDates = {}
-end
-
-local function calculatePos(type, index)
-    local x, y
-    if type == CELL_TYPE.YEAR then
-        x = MARGIN.x
-        y = MARGIN.y
-    end
-    if type == CELL_TYPE.MONTH then
-        x = MARGIN.x + CELL_SIZE.YEAR.width
-        y = MARGIN.y
-    end
-    if type == CELL_TYPE.DAY then
-        local offset = index - 1
-        x = MARGIN.x + ((offset % 7) * CELL_SIZE.DAY.width)
-        y = MARGIN.y + CELL_SIZE.YEAR.height + CELL_SIZE.WEEKDAY.height
-            + (math.floor(offset / 7) * CELL_SIZE.DAY.height)
-    end
-    if type == CELL_TYPE.WEEKDAY then
-        x = MARGIN.x + (((index - 1) % 7) * CELL_SIZE.WEEKDAY.width)
-        y = MARGIN.y + CELL_SIZE.YEAR.height
-    end
-
-    return x, y
-end
-
 function UIManager:update(dt)
     if #PopupManager.activePopup > 0 then 
         local popup = PopupManager.activePopup[#PopupManager.activePopup]
@@ -106,6 +76,103 @@ function UIManager.keypressed(key)
     end
     local popup = PopupManager.activePopup[#PopupManager.activePopup]
     popup:keypressed(key)
+end
+
+local function scrolling(popup, x, y)
+    popup.scrollY = popup.scrollY or 0
+
+    local scrollSpeed = 40
+    popup.scrollY = popup.scrollY + (y * scrollSpeed)
+
+    local buttonHeight = popup.itemStride
+    local totalListHeight = #(popup.children) * buttonHeight
+    local listWindowHeight = popup.scroll_height
+
+    local maxScroll = math.min(0, listWindowHeight - totalListHeight)
+
+    if popup.scrollY > 0 then
+        popup.scrollY = 0
+    elseif popup.scrollY < maxScroll then
+        popup.scrollY = maxScroll
+    end
+end
+
+function UIManager.wheelmoved(x, y)
+    if #PopupManager.activePopup == 0 then return end
+    local popup = PopupManager.activePopup[#PopupManager.activePopup]
+    if popup.is_scrollable then
+        scrolling(popup, x, y)
+    end
+end
+
+function UIManager.mousePressed(x, y, mouseButton)
+    if #PopupManager.activePopup > 0 then
+        local topIndex = #PopupManager.activePopup
+        local topPopup = PopupManager.activePopup[topIndex]
+
+        if topPopup:isClicked(x, y) == false then
+            table.remove(PopupManager.activePopup, topIndex)
+            return true
+        end
+
+        if topPopup.mousePressed then
+            topPopup:mousePressed()
+        end
+
+        return true
+    end
+
+    if mouseButton == 1 then
+        for i = #UIManager.elements, 1, -1 do
+            local element = UIManager.elements[i]
+            if element:isClicked(x, y) == true then
+                if element.onClick then
+                    element:onClick()
+                end
+                return true
+            end
+        end
+        for i = 1, #UIManager.currentCalendar do
+            local element = UIManager.currentCalendar[i]
+            if element:isClicked(x, y) == true then
+                if element.onClick then
+                    element:onClick()
+                end
+                return true
+            end
+        end
+    end
+    return false
+end
+
+local function deleteCalendar()
+    UIManager.elements = {}
+    UIManager.currentCalendar = {}
+    cellDates = {}
+end
+
+local function calculatePos(type, index)
+    local x, y
+    if type == CELL_TYPE.YEAR then
+        x = MARGIN.x
+        y = MARGIN.y
+    end
+    if type == CELL_TYPE.MONTH then
+        x = MARGIN.x + CELL_SIZE.YEAR.width
+        y = MARGIN.y
+    end
+    if type == CELL_TYPE.DAY then
+        local offset = index - 1
+        x = MARGIN.x + ((offset % 7) * CELL_SIZE.DAY.width)
+        y = MARGIN.y + CELL_SIZE.YEAR.height + CELL_SIZE.WEEKDAY.height
+            + (math.floor(offset / 7) * CELL_SIZE.DAY.height)
+    end
+    if type == CELL_TYPE.WEEKDAY then
+        x = MARGIN.x + (((index - 1) % 7) * CELL_SIZE.WEEKDAY.width)
+        y = MARGIN.y + CELL_SIZE.YEAR.height
+    end
+
+    return x, y
 end
 
 function UIManager.loadWeekdays()
@@ -180,73 +247,6 @@ function UIManager.loadCalendar(year, month)
             PopupManager.showEmployee()
         end
     )
-end
-
-local function scrolling(popup, x, y)
-    popup.scrollY = popup.scrollY or 0
-
-    local scrollSpeed = 40
-    popup.scrollY = popup.scrollY + (y * scrollSpeed)
-
-    local buttonHeight = popup.itemStride
-    local totalListHeight = #(popup.children) * buttonHeight
-    local listWindowHeight = popup.scroll_height
-
-    local maxScroll = math.min(0, listWindowHeight - totalListHeight)
-
-    if popup.scrollY > 0 then
-        popup.scrollY = 0
-    elseif popup.scrollY < maxScroll then
-        popup.scrollY = maxScroll
-    end
-end
-
-function UIManager.wheelmoved(x, y)
-    if #PopupManager.activePopup == 0 then return end
-    local popup = PopupManager.activePopup[#PopupManager.activePopup]
-    if popup.is_scrollable then
-        scrolling(popup, x, y)
-    end
-end
-
-function UIManager.mousePressed(x, y, mouseButton)
-    if #PopupManager.activePopup > 0 then
-        local topIndex = #PopupManager.activePopup
-        local topPopup = PopupManager.activePopup[topIndex]
-
-        if topPopup:isClicked(x, y) == false then
-            table.remove(PopupManager.activePopup, topIndex)
-            return true
-        end
-
-        if topPopup.mousePressed then
-            topPopup:mousePressed()
-        end
-
-        return true
-    end
-
-    if mouseButton == 1 then
-        for i = #UIManager.elements, 1, -1 do
-            local element = UIManager.elements[i]
-            if element:isClicked(x, y) == true then
-                if element.onClick then
-                    element:onClick()
-                end
-                return true
-            end
-        end
-        for i = 1, #UIManager.currentCalendar do
-            local element = UIManager.currentCalendar[i]
-            if element:isClicked(x, y) == true then
-                if element.onClick then
-                    element:onClick()
-                end
-                return true
-            end
-        end
-    end
-    return false
 end
 
 function UIManager.draw()
