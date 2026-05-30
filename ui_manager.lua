@@ -26,21 +26,23 @@ local ERROR_CHECK = require("constants").ERROR_CHECK
 
 local Fonts = require("constants").FONTS
 
-local currentYear = 0
-local currentMonth = 0
+local initial_year
+local currentYear
+local currentMonth
 
 local calendar_changed = false
 
-function UIManager.calendarChanged()
-    calendar_changed = true
-end
-
 local function setCurrentYear(year)
     currentYear = year
+    initial_year = year
 end
 
 local function setCurrentMonth(month)
     currentMonth = month
+end
+
+function UIManager.getInitialYear()
+    return initial_year
 end
 
 function UIManager.getCurrentYear()
@@ -276,9 +278,9 @@ function UIManager.loadCalendar(year, month)
     -- year cell:
     x, y = calculatePos(CELL_TYPE.YEAR, year)
 	local yearCell = Cell:new(x, y, CELL_SIZE.YEAR.width, CELL_SIZE.YEAR.height, CELL_TYPE.YEAR, year)
-    PopupManager.setYearPopup(yearCell, year, 
+    PopupManager.setYearPopup(yearCell, initial_year + 2, 
         function(selected_number)
-            UIManager.loadCalendar(selected_number, month)
+            currentYear = selected_number
             calendar_changed = true
         end
         )
@@ -288,7 +290,7 @@ function UIManager.loadCalendar(year, month)
 	local monthCell = Cell:new(x, y, CELL_SIZE.MONTH.width, CELL_SIZE.MONTH.height, CELL_TYPE.MONTH, month)
     PopupManager.setMonthPopup(monthCell, 
         function(selected_number)
-            UIManager.loadCalendar(year, selected_number)
+            currentMonth = selected_number
             calendar_changed = true
         end
         )

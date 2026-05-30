@@ -24,7 +24,7 @@ function UIElement:setOnClick(callback)
 end
 
 function UIElement:setOnDoubleClick(callback)
-    self.onDoubleClick = callback
+    self.doubleClick = callback
 end
 
 function UIElement:isClicked(x, y)

@@ -69,7 +69,7 @@ local function smallSelectionPopup(start, selections, type, onSelect)
 
     x = 50
     y = 20
-    local width = 200
+    local width = 100
     local height = 40
 
     newPopup.itemStride = height
@@ -85,12 +85,11 @@ local function smallSelectionPopup(start, selections, type, onSelect)
         button.isStatic = false
         button.textToLeft = true
 
-        button:setOnClick(
+        button:setOnDoubleClick(
             function ()
                 if onSelect then
                     onSelect(number)
                 end
-                local message = PopupManager.message_popup("성공")
                 closePopup()
             end
         )
