@@ -60,6 +60,63 @@ function PopupManager.setCellPopup(cell, width, height, year, month, day)
     )
 end
 
+local function smallSelectionPopup(start, selections, type, onSelect)
+    local newPopup = popup:new(200, 300, closePopup)
+    local x, y = love.mouse.getPosition()
+    newPopup:setPositionToClick(x, y)
+    newPopup.is_scrollable = true
+    newPopup:setScrollWindow(200, 250)
+
+    x = 50
+    y = 20
+    local width = 200
+    local height = 40
+
+    newPopup.itemStride = height
+
+    local concat = ""
+    if type == CELL_TYPE.MONTH then
+        concat = "월"
+    end
+
+    for i = 1, selections do
+        local number = start + i - 1
+        local button = Button:new(x, y + (height * (i - 1)), width, height, tostring(number) .. concat)
+        button.isStatic = false
+        button.textToLeft = true
+
+        button:setOnClick(
+            function ()
+                if onSelect then
+                    onSelect(number)
+                end
+                local message = PopupManager.message_popup("성공")
+                closePopup()
+            end
+        )
+
+        newPopup:addChild(button)
+    end
+
+    table.insert(PopupManager.activePopup, newPopup)
+end
+
+function PopupManager.setYearPopup(cell, year, onSelect)
+    cell:setOnClick(
+        function ()
+            smallSelectionPopup(2018, year - 2018, cell.type, onSelect)
+        end
+    )
+end
+
+function PopupManager.setMonthPopup(cell, onSelect)
+    cell:setOnClick(
+        function ()
+            smallSelectionPopup(1, 12, cell.type, onSelect)
+        end
+    )
+end
+
 local function setInputTitles(popup, x, y, text)
     local width = 300
     local height = 100
@@ -135,6 +192,11 @@ function PopupManager.showEmployee()
     for i, name in ipairs(sortedNames) do
         local employee = Button:new(x, y + (height * (i - 1)), width, height, name)
         employee.isStatic = false
+        employee:setOnClick(
+            function ()
+                
+            end
+        )
         newPopup:addChild(employee)
     end
 

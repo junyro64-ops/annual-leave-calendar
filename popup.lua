@@ -33,6 +33,11 @@ function popup:new(width, height, onClose)
 	return instance
 end
 
+function popup:setPositionToClick(x, y)
+	self.x = x
+	self.y = y
+end
+
 function popup:setScrollWindow(width, height)
 	self.scroll_width = width
 	self.scroll_height = height
@@ -121,7 +126,21 @@ function popup:update(dt)
 	end
 end
 
-function popup:mousePressed()
+local function activateClick(element, x, y, presses)
+	if element:isClicked(x, y) then
+		element.isActive = true
+		if presses > 1 and element.onDoubleClick then
+			element:onDoubleClick()
+		end
+		if element.onClick then
+			element:onClick()
+		end
+		return true
+	end
+	return false
+end
+
+function popup:mousePressed(presses)
 	local x, y = getLocalCoordinate(self)
 
 	for _, element in ipairs(self.children) do
@@ -131,26 +150,14 @@ function popup:mousePressed()
 	for _, element in ipairs(self.children) do
 
 		if element.isStatic then
-			if element:isClicked(x, y) then
-				element.isActive = true
-				if element.onClick then
-					element:onClick()
-				end
-				return true
-			end
+			if activateClick(element, x, y, presses) then return true end
 		else
 			local top = self.scroll_window_y - self.y
 			local bottom = top + self.scroll_height
 
 			if y >= top and y <= bottom then
 				local local_y = y - (self.scrollY or 0)
-				if element:isClicked(x, local_y) then
-					element.isActive = true
-					if element.onClick then
-						element:onClick()
-					end
-					return true
-				end
+				if activateClick(element, x, local_y, presses) then return true end
 			end
 		end
 

@@ -26,7 +26,42 @@ local ERROR_CHECK = require("constants").ERROR_CHECK
 
 local Fonts = require("constants").FONTS
 
+local currentYear = 0
+local currentMonth = 0
+
+local calendar_changed = false
+
+function UIManager.calendarChanged()
+    calendar_changed = true
+end
+
+local function setCurrentYear(year)
+    currentYear = year
+end
+
+local function setCurrentMonth(month)
+    currentMonth = month
+end
+
+function UIManager.getCurrentYear()
+    return currentYear
+end
+
+function UIManager.getCurrentMonth()
+    return currentMonth
+end
+
+function UIManager.setCurrentDate()
+	local currentDate = os.date("*t")
+	setCurrentYear(currentDate.year)
+	setCurrentMonth(currentDate.month)
+end
+
 function UIManager:update(dt)
+	if calendar_changed then
+		UIManager.loadCalendar(currentYear, currentMonth)
+		calendar_changed = false
+	end
     if #PopupManager.activePopup > 0 then 
         local popup = PopupManager.activePopup[#PopupManager.activePopup]
         if popup.update then
@@ -68,14 +103,39 @@ function UIManager.textinput(t)
 end
 
 function UIManager.keypressed(key)
-    if #PopupManager.activePopup == 0 then return end
+    if #PopupManager.activePopup > 0 then 
+        if key == "escape" then
+            table.remove(PopupManager.activePopup)
+            return
+        end
+        local popup = PopupManager.activePopup[#PopupManager.activePopup]
+        popup:keypressed(key)
 
-    if key == "escape" then
-        table.remove(PopupManager.activePopup)
-        return
+        return 
+    else
+        if key == "left" then
+            if currentMonth == 1 then
+                currentMonth = 12
+                currentYear = currentYear - 1
+                CalendarManager.createYearTree(currentYear - 1)
+                CalendarManager.destroyYearTree(currentYear + 2)
+            else
+                currentMonth = currentMonth - 1
+            end
+            calendar_changed = true
+        elseif key == "right" then
+            if currentMonth == 12 then
+                currentMonth = 1
+                currentYear = currentYear + 1
+                CalendarManager.createYearTree(currentYear + 1)
+                CalendarManager.destroyYearTree(currentYear - 2)
+            else
+                currentMonth = currentMonth + 1
+            end
+            calendar_changed = true
+        end
     end
-    local popup = PopupManager.activePopup[#PopupManager.activePopup]
-    popup:keypressed(key)
+
 end
 
 local function scrolling(popup, x, y)
@@ -105,7 +165,7 @@ function UIManager.wheelmoved(x, y)
     end
 end
 
-function UIManager.mousePressed(x, y, mouseButton)
+function UIManager.mousePressed(x, y, mouseButton, presses)
     if #PopupManager.activePopup > 0 then
         local topIndex = #PopupManager.activePopup
         local topPopup = PopupManager.activePopup[topIndex]
@@ -116,7 +176,7 @@ function UIManager.mousePressed(x, y, mouseButton)
         end
 
         if topPopup.mousePressed then
-            topPopup:mousePressed()
+            topPopup:mousePressed(presses)
         end
 
         return true
@@ -185,7 +245,21 @@ function UIManager.loadWeekdays()
 	end
 end
 
+function UIManager.createYear(year)
+    CalendarManager.createYearTree(year)
+end
+
+function UIManager.destroyYear(year)
+    CalendarManager.destroyYearTree(year)
+end
+
 function UIManager.loadCalendar(year, month)
+
+	-- creates the entire year date table
+	CalendarManager.createYearTree(year)
+	CalendarManager.createYearTree(year - 1)
+	CalendarManager.createYearTree(year + 1)
+
     local x, y
 
 	deleteCalendar()
@@ -202,10 +276,22 @@ function UIManager.loadCalendar(year, month)
     -- year cell:
     x, y = calculatePos(CELL_TYPE.YEAR, year)
 	local yearCell = Cell:new(x, y, CELL_SIZE.YEAR.width, CELL_SIZE.YEAR.height, CELL_TYPE.YEAR, year)
+    PopupManager.setYearPopup(yearCell, year, 
+        function(selected_number)
+            UIManager.loadCalendar(selected_number, month)
+            calendar_changed = true
+        end
+        )
     table.insert(UIManager.currentCalendar, yearCell)
     -- month cell:
     x, y = calculatePos(CELL_TYPE.MONTH, month)
 	local monthCell = Cell:new(x, y, CELL_SIZE.MONTH.width, CELL_SIZE.MONTH.height, CELL_TYPE.MONTH, month)
+    PopupManager.setMonthPopup(monthCell, 
+        function(selected_number)
+            UIManager.loadCalendar(year, selected_number)
+            calendar_changed = true
+        end
+        )
     table.insert(UIManager.currentCalendar, monthCell)
 	table.insert(cellDates, year)
 	table.insert(cellDates, month)

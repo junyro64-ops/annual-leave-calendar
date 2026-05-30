@@ -12,6 +12,7 @@ function UIElement:new(x, y, width, height)
 
     instance.Fonts = require("constants").FONTS
     instance.callback = nil
+    instance.doubleClick = nil
 
     instance.isStatic = true
 
@@ -20,6 +21,10 @@ end
 
 function UIElement:setOnClick(callback)
     self.callback = callback
+end
+
+function UIElement:setOnDoubleClick(callback)
+    self.onDoubleClick = callback
 end
 
 function UIElement:isClicked(x, y)
@@ -34,6 +39,12 @@ end
 function UIElement:onClick()
     if self.callback then
         self.callback()
+    end
+end
+
+function UIElement:onDoubleClick()
+    if self.doubleClick then
+        self.doubleClick()
     end
 end
 
