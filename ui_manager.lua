@@ -10,6 +10,7 @@ local Button = require("button")
 
 local CalendarManager = require("calendar_manager")
 local EmployeeManager = require("employee_manager")
+local PopupManager = require("popup_manager")
 
 local Cell = require("cell")
 local CELL_COUNT = require("constants").CELL_COUNT
@@ -212,6 +213,7 @@ local function addEmployee()
             local startMonth = tonumber(startMonthInput:returnText())
 
             if name == nil or maxLeave == nil or startYear == nil or startMonth == nil then
+                --local error_popup = PopupManager.message_popup("입력 오류", UIManager.activePopup)
                 local error_popup = message_popup("입력 오류")
                 return
             end
@@ -241,9 +243,15 @@ local function showEmployee()
 
     newPopup.itemStride = height
 
-    local i = 0
-
+    local sortedNames = {}
     for name, data in pairs(EmployeeManager.database) do
+        table.insert(sortedNames, name)
+    end
+
+    table.sort(sortedNames)
+
+    local i = 0
+    for i, name in pairs(sortedNames) do
         local employee = Button:new(x, y + (height * i), width, height, name)
         newPopup:addChild(employee)
         i = i + 1

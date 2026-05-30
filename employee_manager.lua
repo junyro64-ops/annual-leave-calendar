@@ -73,6 +73,8 @@ function EmployeeManager.useLeave(name, year, month, day, amount)
 	return ERROR_CHECK.SUCCESS
 end
 
+-- The save file is located in the following directory:
+-- C:\Users\(user)\AppData\Roaming\LOVE\calendar
 function EmployeeManager.saveData()
 	local jsonData = json.encode(EmployeeManager.database)
 
