@@ -13,6 +13,8 @@ function UIElement:new(x, y, width, height)
     instance.Fonts = require("constants").FONTS
     instance.callback = nil
 
+    instance.isStatic = true
+
     return instance
 end
 

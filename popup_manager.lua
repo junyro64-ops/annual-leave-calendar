@@ -93,7 +93,7 @@ function PopupManager.addEmployee()
             local startYear = tonumber(startYearInput:returnText())
             local startMonth = tonumber(startMonthInput:returnText())
 
-            if name == nil or maxLeave == nil or startYear == nil or startMonth == nil then
+            if name == nil or name == "" or maxLeave == nil or startYear == nil or startMonth == nil then
                 local error_popup = PopupManager.message_popup("입력 오류")
                 return
             end
@@ -117,6 +117,7 @@ end
 function PopupManager.showEmployee()
     local newPopup = popup:new(800, 600, closePopup)
     newPopup.is_scrollable = true
+    newPopup:setScrollWindow(700, 550)
 
     local x = 50
     local y = 50
@@ -133,8 +134,9 @@ function PopupManager.showEmployee()
 
     table.sort(sortedNames)
 
-    for i, name in pairs(sortedNames) do
+    for i, name in ipairs(sortedNames) do
         local employee = Button:new(x, y + (height * (i - 1)), width, height, name)
+        employee.isStatic = false
         newPopup:addChild(employee)
     end
 

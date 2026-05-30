@@ -44,8 +44,9 @@ function EmployeeManager.checkLeaveStart(data, year, month)
 	end
 end
 
-function EmployeeManager.cancelLeave(name, year, month, day)
+function EmployeeManager.cancelLeave(name, year, month, day, amount)
 	local data = EmployeeManager.database[name]
+	data.usedLeave = data.usedLeave - amount
 	data.leaveDates[year][month][day] = nil
 end
 
@@ -63,12 +64,17 @@ function EmployeeManager.useLeave(name, year, month, day, amount)
 	if (data.usedLeave + amount) > data.maxLeave then
 		return ERROR_CHECK.MAX_REACHED
 	end
-
-	data.usedLeave = data.usedLeave + amount
-
+	
 	data.leaveDates[year] = data.leaveDates[year] or {}
 	data.leaveDates[year][month] = data.leaveDates[year][month] or {}
+	
+	if data.leaveDates[year][month][day] then
+		return ERROR_CHECK.DATA_EXIST
+	end
+	
 	data.leaveDates[year][month][day] = amount
+	
+	data.usedLeave = data.usedLeave + amount
 
 	return ERROR_CHECK.SUCCESS
 end

@@ -14,7 +14,10 @@ function popup:new(width, height, onClose)
 
 	instance.children = {}
 	instance.is_scrollable = false
+	instance.scroll_width = 0
 	instance.scroll_height = 0
+	instance.scroll_window_x = 0
+	instance.scroll_window_y = 0
 
 	local closeButton = Button:new(width - 45, 15, 30, 30, "X")
 	closeButton:setOnClick(
@@ -30,7 +33,14 @@ function popup:new(width, height, onClose)
 	return instance
 end
 
-function popup:textedited(text, start, legnth)
+function popup:setScrollWindow(width, height)
+	self.scroll_width = width
+	self.scroll_height = height
+	self.scroll_window_x = self.x + (self.width - self.scroll_width)
+	self.scroll_window_y = self.y + (self.height - self.scroll_height)
+end
+
+function popup:textedited(text, start, length)
 	for _, element in ipairs(self.children) do
 		if element.isActive and element.edit then
 			element:edit(text)
@@ -66,50 +76,80 @@ function popup:customDraw()
 	love.graphics.setColor(1, 1, 1)
 	love.graphics.rectangle("fill", 0, 0, self.width, self.height, 10, 10)
 
-	love.graphics.setScissor(self.x + 10, self.y + 10, self.width - 20, self.height - 20)
-
-	love.graphics.push()
-	love.graphics.translate(0, self.scrollY or 0)
-
 	for _, child in ipairs(self.children) do
-		child:draw()
+		if child.isStatic then
+			child:draw()
+		end
 	end
 
-	love.graphics.pop()
+	if self.is_scrollable then
 
-	love.graphics.setScissor()
-end
+		-- setScissor ignores local translations and always require absolute screen coordinates
+		love.graphics.setScissor(
+			self.scroll_window_x, 
+			self.scroll_window_y, 
+			self.scroll_width, 
+			self.scroll_height
+		)
 
-local function getGlobalCoordinates(self)
-	local x, y = love.mouse.getPosition()
-	return x - self.x, y - self.y - (self.scrollY or 0)
+		love.graphics.push()
+		love.graphics.translate(0, self.scrollY or 0)
+
+		for _, child in ipairs(self.children) do
+			if not child.isStatic then
+				child:draw()
+			end
+		end
+
+		love.graphics.pop()
+		love.graphics.setScissor()
+	end
 end
 
 function popup:update(dt)
-	local x, y = getGlobalCoordinates(self)
+	local x, y = love.mouse.getPosition()
 
-	for _, child in ipairs(self.children) do
-		if child.update then
-			child:update(dt, x, y)
+	for _, element in ipairs(self.children) do
+		if element.update then
+			element:update(dt, x, y)
 		end
 	end
 end
 
-function popup:mousePressed(button)
-	local x, y = getGlobalCoordinates(self)
+function popup:mousePressed(x, y)
+	local x = x - self.x
+	local y = y - self.y
 
 	for _, element in ipairs(self.children) do
 		element.isActive = false
 	end
 
 	for _, element in ipairs(self.children) do
-		if element:isClicked(x, y) then
-			element.isActive = true
-			if element.onClick then
-				element:onClick()
+
+		if element.isStatic then
+			if element:isClicked(x, y) then
+				element.isActive = true
+				if element.onClick then
+					element:onClick()
+				end
+				return true
 			end
-			return true
+		else
+			local top = self.scroll_window_y
+			local bottom = top + self.scroll_height
+
+			if y >= top and y <= bottom then
+				local local_y = y - (self.scrollY or 0)
+				if element:isClicked(x, local_y) then
+					element.isActive = true
+					if element.onClick then
+						element:onClick()
+					end
+					return true
+				end
+			end
 		end
+
 	end
 
 	return false
