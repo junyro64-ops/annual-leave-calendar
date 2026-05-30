@@ -63,4 +63,10 @@ Constants.LEAVE_NAME = {
     LEAVE_ONE_DAY = "연차"
 }
 
+Constants.ButtonGraphics = {
+    idle = love.graphics.newImage("ui/button_idle.png"),
+    hover = love.graphics.newImage("ui/button_hover.png"),
+    click = love.graphics.newImage("ui/button_click.png")
+}
+
 return Constants

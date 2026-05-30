@@ -1,16 +1,11 @@
-local ErrorCheck = require("error_check_module")
-
 local CalendarManager = require("calendar_manager")
 local EmployeeManager = require("employee_manager")
 local UIManager = require("ui_manager")
 
 local SCREEN_SIZE = require("constants").SCREEN_SIZE
-local ERROR_CHECK = require("constants").ERROR_CHECK
 
 local currentYear, currentMonth
 
-local debugCheck = false
-local error_message = ""
 local calendarChanged = false
 
 
@@ -38,19 +33,15 @@ function love.wheelmoved(x, y)
 end
 
 function love.textedited(text, start, length)
-	if #UIManager.activePopup > 0 then
-		UIManager.textedited(text, start, length)
-	end
+	UIManager.textedited(text, start, length)
 end
 
 function love.textinput(t)
-	if #UIManager.activePopup > 0 then
-		UIManager.textinput(t)
-	end
+	UIManager.textinput(t)
 end
 
 function love.keypressed(key, scancode, isrepeat)
-	if #UIManager.activePopup > 0 then
+	if UIManager.checkActivePopup() then
 		UIManager.keypressed(key)
 		return 
 	end

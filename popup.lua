@@ -14,6 +14,7 @@ function popup:new(width, height, onClose)
 
 	instance.children = {}
 	instance.is_scrollable = false
+	instance.scroll_height = 0
 
 	local closeButton = Button:new(width - 45, 15, 30, 30, "X")
 	closeButton:setOnClick(
@@ -81,7 +82,7 @@ end
 
 local function getGlobalCoordinates(self)
 	local x, y = love.mouse.getPosition()
-	return x - self.x, y - self.y
+	return x - self.x, y - self.y - (self.scrollY or 0)
 end
 
 function popup:update(dt)
@@ -103,6 +104,7 @@ function popup:mousePressed(button)
 
 	for _, element in ipairs(self.children) do
 		if element:isClicked(x, y) then
+			element.isActive = true
 			if element.onClick then
 				element:onClick()
 			end
