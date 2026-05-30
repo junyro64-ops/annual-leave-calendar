@@ -85,7 +85,8 @@ function PopupManager.addEmployee()
     local startMonthInput = TextInput:new(x + 300, y * 4, 300, 90)
     newPopup:addChild(startMonthInput)
 
-    local confirm = GraphicsButton.createButton(x + 100, y * 5 + 40, 200, 50, "확인")
+    local confirm = GraphicsButton.createButton(x + 100, y * 5 + 40, "확인")
+    newPopup:addChild(confirm)
     confirm:setOnClick(
         function()
             local name = nameInput:returnText()
@@ -108,8 +109,6 @@ function PopupManager.addEmployee()
             local success_popup = PopupManager.message_popup("성공")
         end
     )
-
-    newPopup:addChild(confirm)
 
     table.insert(PopupManager.activePopup, newPopup)
 end

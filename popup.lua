@@ -106,8 +106,13 @@ function popup:customDraw()
 	end
 end
 
-function popup:update(dt)
+local function getLocalCoordinate(self)
 	local x, y = love.mouse.getPosition()
+	return x - self.x, y - self.y
+end
+
+function popup:update(dt)
+	local x, y = getLocalCoordinate(self)
 
 	for _, element in ipairs(self.children) do
 		if element.update then
@@ -116,9 +121,8 @@ function popup:update(dt)
 	end
 end
 
-function popup:mousePressed(x, y)
-	local x = x - self.x
-	local y = y - self.y
+function popup:mousePressed()
+	local x, y = getLocalCoordinate(self)
 
 	for _, element in ipairs(self.children) do
 		element.isActive = false

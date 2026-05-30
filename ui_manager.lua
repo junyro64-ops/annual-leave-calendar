@@ -165,7 +165,7 @@ function UIManager.loadCalendar(year, month)
     x = 100
     y = y + CELL_SIZE.DAY.height + 10
 
-    local add_employee_button = GraphicsButton.createButton(x, y, 200, 50, "사원등록")
+    local add_employee_button = GraphicsButton.createButton(x, y, "사원등록")
     table.insert(UIManager.elements, add_employee_button)
     add_employee_button:setOnClick(
         function()
@@ -173,7 +173,7 @@ function UIManager.loadCalendar(year, month)
         end
     )
 
-    local show_employee_button = GraphicsButton.createButton(x + 200 +50, y, 200, 50, "사원목록")
+    local show_employee_button = GraphicsButton.createButton(x + 200 +50, y, "사원목록")
     table.insert(UIManager.elements, show_employee_button)
     show_employee_button:setOnClick(
         function()
@@ -220,7 +220,7 @@ function UIManager.mousePressed(x, y, mouseButton)
         end
 
         if topPopup.mousePressed then
-            topPopup:mousePressed(x, y)
+            topPopup:mousePressed()
         end
 
         return true
