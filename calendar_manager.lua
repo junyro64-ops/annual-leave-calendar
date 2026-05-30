@@ -1,9 +1,21 @@
-local Days = require("calculate_days_in_month")
-
 local CalendarManager = {}
+
 CalendarManager.calendarDataTree = {}
 CalendarManager.startingWeekDayTable = {}
 CalendarManager.daysInMonthTable = {}
+
+local function calculateDays(year, month)
+    local startingWeekday = os.date(
+        "*t", 
+        os.time({year = year, month = month, day = 1})
+    ).wday
+    local daysInMonth = os.date(
+        "*t", 
+        os.time({year = year, month = month + 1, day = 0})
+    ).day
+
+    return startingWeekday, daysInMonth
+end
 
 -- loops through a 1 month calendar and does "func" operation
 function CalendarManager.loopThroughCalendar(year, month, func)
@@ -14,7 +26,6 @@ function CalendarManager.loopThroughCalendar(year, month, func)
     end
 end
 
-
 -- used for creating calendar for 1 year
 function CalendarManager.createYearTree(year)
     
@@ -23,7 +34,7 @@ function CalendarManager.createYearTree(year)
     CalendarManager.daysInMonthTable[year] = {}
 
     for month=1, 12 do
-        local startingWeekDay, daysInMonth = Days.calculateDays(year, month)
+        local startingWeekDay, daysInMonth = calculateDays(year, month)
         
         CalendarManager.calendarDataTree[year][month] = {}
         CalendarManager.startingWeekDayTable[year][month] = startingWeekDay
