@@ -117,7 +117,7 @@ end
 function PopupManager.showEmployee()
     local newPopup = popup:new(800, 600, closePopup)
     newPopup.is_scrollable = true
-    newPopup:setScrollWindow(700, 550)
+    newPopup:setScrollWindow(700, 500)
 
     local x = 50
     local y = 50
@@ -125,7 +125,6 @@ function PopupManager.showEmployee()
     local height = 100
 
     newPopup.itemStride = height
-    newPopup.scroll_height = 500
 
     local sortedNames = {}
     for name, data in pairs(EmployeeManager.database) do

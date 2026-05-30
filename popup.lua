@@ -36,8 +36,8 @@ end
 function popup:setScrollWindow(width, height)
 	self.scroll_width = width
 	self.scroll_height = height
-	self.scroll_window_x = self.x + (self.width - self.scroll_width)
-	self.scroll_window_y = self.y + (self.height - self.scroll_height)
+	self.scroll_window_x = self.x + ((self.width - self.scroll_width) / 2)
+	self.scroll_window_y = self.y + ((self.height - self.scroll_height) / 2)
 end
 
 function popup:textedited(text, start, length)
@@ -135,7 +135,7 @@ function popup:mousePressed(x, y)
 				return true
 			end
 		else
-			local top = self.scroll_window_y
+			local top = self.scroll_window_y - self.y
 			local bottom = top + self.scroll_height
 
 			if y >= top and y <= bottom then
