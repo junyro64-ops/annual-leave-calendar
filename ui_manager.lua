@@ -265,10 +265,10 @@ function UIManager.loadCalendar(year, month)
 
 	deleteCalendar()
 
-    --this block uses calendar manager
-	--local nextMonth = month % 12 + 1
 	local startingWeekday = CalendarManager.startingWeekDayTable[year][month]
     local daysInMonth = CalendarManager.daysInMonthTable[year][month]
+    local previousMonth = (currentMonth - 2) % 12 + 1
+    local previousMonthLastDay = CalendarManager.daysInMonthTable[currentYear][previousMonth]
 
 	--Insert the year and the month on the calendar and cellDates table for initialization
     -- year cell:
@@ -301,7 +301,6 @@ function UIManager.loadCalendar(year, month)
 		
 		if i < startingWeekday then
 			cellType = CELL_TYPE.PREVIOUS_MONTH_CELL
-            local previousMonthLastDay = CalendarManager.daysInMonthTable[currentYear][currentMonth - 1]
             dateNumber = i + previousMonthLastDay - startingWeekday + 1
 		elseif dateNumber > daysInMonth then
 			cellType = CELL_TYPE.NEXT_MONTH_CELL
