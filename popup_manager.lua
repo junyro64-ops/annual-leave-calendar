@@ -85,7 +85,7 @@ local function smallSelectionPopup(start, selections, type, onSelect)
         button.isStatic = false
         button.textToLeft = true
 
-        button:setOnDoubleClick(
+        button:setOnClick(
             function ()
                 if onSelect then
                     onSelect(number)

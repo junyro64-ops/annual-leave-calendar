@@ -1,5 +1,6 @@
 local UIManager = {
     elements = {},
+    headers = {},
     currentCalendar = {},
     weekDays = {}
 }
@@ -167,6 +168,16 @@ function UIManager.wheelmoved(x, y)
     end
 end
 
+local function applyClick(element, x, y)
+    if element:isClicked(x, y) == true then
+        if element.onClick then
+            element:onClick()
+        end
+        return true
+    end
+    return false
+end
+
 function UIManager.mousePressed(x, y, mouseButton, presses)
     if #PopupManager.activePopup > 0 then
         local topIndex = #PopupManager.activePopup
@@ -186,20 +197,17 @@ function UIManager.mousePressed(x, y, mouseButton, presses)
 
     if mouseButton == 1 then
         for i = #UIManager.elements, 1, -1 do
-            local element = UIManager.elements[i]
-            if element:isClicked(x, y) == true then
-                if element.onClick then
-                    element:onClick()
-                end
+            if applyClick(UIManager.elements[i], x, y) then
+                return true
+            end
+        end
+        for i = 1, #UIManager.headers do
+            if applyClick(UIManager.headers[i], x, y) then
                 return true
             end
         end
         for i = 1, #UIManager.currentCalendar do
-            local element = UIManager.currentCalendar[i]
-            if element:isClicked(x, y) == true then
-                if element.onClick then
-                    element:onClick()
-                end
+            if applyClick(UIManager.currentCalendar[i], x, y) then
                 return true
             end
         end
@@ -209,6 +217,7 @@ end
 
 local function deleteCalendar()
     UIManager.elements = {}
+    UIManager.headers = {}
     UIManager.currentCalendar = {}
     cellDates = {}
 end
@@ -247,14 +256,6 @@ function UIManager.loadWeekdays()
 	end
 end
 
-function UIManager.createYear(year)
-    CalendarManager.createYearTree(year)
-end
-
-function UIManager.destroyYear(year)
-    CalendarManager.destroyYearTree(year)
-end
-
 function UIManager.loadCalendar(year, month)
 
 	-- creates the entire year date table
@@ -262,29 +263,27 @@ function UIManager.loadCalendar(year, month)
 	CalendarManager.createYearTree(year - 1)
 	CalendarManager.createYearTree(year + 1)
 
-    local x, y
-
 	deleteCalendar()
 
     --this block uses calendar manager
 	--local nextMonth = month % 12 + 1
-	local previousMonth = (month - 2) % 12 + 1
-	local previousMonthYear = (previousMonth > month) and (year - 1) or year
-	local previousMonthLastDay = CalendarManager.daysInMonthTable[previousMonthYear][previousMonth]
-	local currentStartWeekday = CalendarManager.startingWeekDayTable[year][month]
-	local currentLastDay = currentStartWeekday + CalendarManager.daysInMonthTable[year][month] - 1
+	local startingWeekday = CalendarManager.startingWeekDayTable[year][month]
+    local daysInMonth = CalendarManager.daysInMonthTable[year][month]
 
 	--Insert the year and the month on the calendar and cellDates table for initialization
     -- year cell:
-    x, y = calculatePos(CELL_TYPE.YEAR, year)
+    local x, y = calculatePos(CELL_TYPE.YEAR, year)
 	local yearCell = Cell:new(x, y, CELL_SIZE.YEAR.width, CELL_SIZE.YEAR.height, CELL_TYPE.YEAR, year)
     PopupManager.setYearPopup(yearCell, initial_year + 2, 
         function(selected_number)
+            CalendarManager.destroyYearTree(currentYear)
+            CalendarManager.destroyYearTree(currentYear + 1)
+            CalendarManager.destroyYearTree(currentYear - 1)
             currentYear = selected_number
             calendar_changed = true
         end
         )
-    table.insert(UIManager.currentCalendar, yearCell)
+    table.insert(UIManager.headers, yearCell)
     -- month cell:
     x, y = calculatePos(CELL_TYPE.MONTH, month)
 	local monthCell = Cell:new(x, y, CELL_SIZE.MONTH.width, CELL_SIZE.MONTH.height, CELL_TYPE.MONTH, month)
@@ -294,26 +293,30 @@ function UIManager.loadCalendar(year, month)
             calendar_changed = true
         end
         )
-    table.insert(UIManager.currentCalendar, monthCell)
-	table.insert(cellDates, year)
-	table.insert(cellDates, month)
+    table.insert(UIManager.headers, monthCell)
     -- day cell:
 	for i=1, CELL_COUNT do
-        x, y = calculatePos(CELL_TYPE.DAY, i)
-        local dayCell = Cell:new(x, y, CELL_SIZE.DAY.width, CELL_SIZE.DAY.height, CELL_TYPE.DAY, i)
+        local cellType
+        local dateNumber = i - startingWeekday + 1
 		
-		if i < currentStartWeekday then
-			table.insert(cellDates, previousMonthLastDay - (currentStartWeekday - i) + 1)
-		elseif i > currentLastDay then
-			table.insert(cellDates, i - currentLastDay)
+		if i < startingWeekday then
+			cellType = CELL_TYPE.PREVIOUS_MONTH_CELL
+            local previousMonthLastDay = CalendarManager.daysInMonthTable[currentYear][currentMonth - 1]
+            dateNumber = i + previousMonthLastDay - startingWeekday + 1
+		elseif dateNumber > daysInMonth then
+			cellType = CELL_TYPE.NEXT_MONTH_CELL
+            dateNumber = dateNumber - daysInMonth
 		else
-			table.insert(cellDates, i - currentStartWeekday + 1)
-
-            -- creates a popup when the cell is clicked
-            PopupManager.setCellPopup(dayCell, 400, 300, year, month, i - currentStartWeekday + 1)
+            cellType = CELL_TYPE.DAY
 		end
 
+        x, y = calculatePos(CELL_TYPE.DAY, i)
+
+        local dayCell = Cell:new(x, y, CELL_SIZE.DAY.width, CELL_SIZE.DAY.height, cellType, dateNumber)
         table.insert(UIManager.currentCalendar, dayCell)
+        if dayCell.type == CELL_TYPE.DAY then
+            PopupManager.setCellPopup(dayCell, 400, 300, year, month, dateNumber)
+        end
 	end
 
     -- add employee button position:
@@ -339,24 +342,46 @@ end
 
 function UIManager.draw()
     for i=1, #UIManager.elements do
-        local element = UIManager.elements[i]
-        if element.draw then
-            element:draw()
-        end
+        UIManager.elements[i]:draw()
     end
+
+    for i=1, #UIManager.headers do
+        local element = UIManager.headers[i]
+        local value = element.value
+
+        element:draw()
+        
+        love.graphics.setFont(Fonts.large)
+		love.graphics.print(
+			value, 
+			element.x + MARGIN.indent, 
+			element.y
+		)
+    end
+
     for i=1, #UIManager.currentCalendar do
         local element = UIManager.currentCalendar[i]
-        if element.draw then
-            element:draw()
+        local value = element.value
+        local dayData = nil
+
+        if element.type == CELL_TYPE.DAY then
+            dayData = CalendarManager.calendarDataTree[currentYear][currentMonth][value]
         end
-		if element.type == CELL_TYPE.DAY then
-			love.graphics.setFont(Fonts.small)
-		else
-			love.graphics.setFont(Fonts.large)			
-		end
+
+        element:draw()
+
+		love.graphics.setFont(Fonts.small)
+
+        if dayData and dayData.isHoliday then
+            -- Holiday is red color
+            love.graphics.setColor(1, 0, 0)
+        else
+            -- otherwise it's black
+            love.graphics.setColor(0, 0, 0)
+        end
 
 		love.graphics.print(
-			cellDates[i], 
+			value, 
 			element.x + MARGIN.indent, 
 			element.y
 		)
