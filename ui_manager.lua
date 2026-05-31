@@ -30,6 +30,8 @@ local Fonts = require("constants").FONTS
 local initial_year
 local currentYear
 local currentMonth
+local previousMonth
+local nextMonth
 
 local calendar_changed = false
 
@@ -267,8 +269,9 @@ function UIManager.loadCalendar(year, month)
 
 	local startingWeekday = CalendarManager.startingWeekDayTable[year][month]
     local daysInMonth = CalendarManager.daysInMonthTable[year][month]
-    local previousMonth = (currentMonth - 2) % 12 + 1
+    previousMonth = (currentMonth - 2) % 12 + 1
     local previousMonthLastDay = CalendarManager.daysInMonthTable[currentYear][previousMonth]
+    nextMonth = (currentMonth % 12) + 1
 
 	--Insert the year and the month on the calendar and cellDates table for initialization
     -- year cell:
@@ -362,9 +365,16 @@ function UIManager.draw()
         local element = UIManager.currentCalendar[i]
         local value = element.value
         local dayData = nil
+        local year = currentYear
 
-        if element.type == CELL_TYPE.DAY then
-            dayData = CalendarManager.calendarDataTree[currentYear][currentMonth][value]
+        if element.type == CELL_TYPE.PREVIOUS_MONTH_CELL then
+            if previousMonth == 12 then year = currentYear - 1 end
+            dayData = CalendarManager.calendarDataTree[year][previousMonth][value]
+        elseif element.type == CELL_TYPE.NEXT_MONTH_CELL then
+            if nextMonth == 1 then year = currentYear + 1 end
+            dayData = CalendarManager.calendarDataTree[year][nextMonth][value]
+        else
+            dayData = CalendarManager.calendarDataTree[year][currentMonth][value]
         end
 
         element:draw()

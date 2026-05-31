@@ -48,6 +48,11 @@ function CalendarManager.createYearTree(year)
                     }
             end
         )
+
+        local firstSunday = (8 - startingWeekDay) % 7 + 1
+        for day = firstSunday, daysInMonth, 7 do
+            CalendarManager.calendarDataTree[year][month][day].isHoliday = true
+        end
     end
 end
 
