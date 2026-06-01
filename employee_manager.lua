@@ -7,8 +7,28 @@ local ERROR_CHECK = require("constants").ERROR_CHECK
 
 local saveFileName = "employee_data.json"
 
+-- Checks if the inputs are valid in addEmployee popup
+-- The order of inputs are name, maxLeave, startYear, startMonth
+local validationRules ={
+	function(value) return value ~= nil and string.len(value) > 0 end;
+	function(value) return value ~= nil and value > 0 end;
+	function(value) 
+		local year = os.date("*t").year
+		return value ~= nil and (year - 1 < value) and (value < year + 1)
+	end;
+	function(value) return value ~= nil and 0 < value < 13 end
+}
+
 function EmployeeManager.addEmployee(name, maxLeave, year, month)
 	if EmployeeManager.database[name] then return ERROR_CHECK.DATA_EXIST end
+	local inputData = {name, maxLeave, year, month}
+
+	for i, value in ipairs(inputData)do
+		local validation = validationRules[i]
+		if validation and not validation(value) then 
+			return ERROR_CHECK.INVALID_DATA, i, value
+		end
+	end
 	
 	EmployeeManager.database[name] = {
 		name = name,
@@ -19,7 +39,7 @@ function EmployeeManager.addEmployee(name, maxLeave, year, month)
 		leaveDates = {}
 	}
 
-	return ERROR_CHECK.SUCCESS
+	return ERROR_CHECK.SUCCESS, 0, 1
 end
 
 function EmployeeManager.getEmployeeData(name)

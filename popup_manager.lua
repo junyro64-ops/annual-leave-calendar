@@ -133,7 +133,7 @@ function PopupManager.addEmployee()
     local x = 50
     local y = 90
     setInputTitles(newPopup, x, y,     "이름")
-    setInputTitles(newPopup, x, y * 2, "총 연차 회수")
+    setInputTitles(newPopup, x, y * 2, "총 연차 횟수")
     setInputTitles(newPopup, x, y * 3, "연차 시작 연도")
     setInputTitles(newPopup, x, y * 4, "연차 시작 월")
     local nameInput = TextInput:new(x + 300, y, 300, 90)
@@ -164,9 +164,16 @@ function PopupManager.addEmployee()
                 return
             end
 
-            EmployeeManager.addEmployee(name, maxLeave, startYear, startMonth)
+            local error_check, i, value = EmployeeManager.addEmployee(name, maxLeave, startYear, startMonth)
 
-            local success_popup = PopupManager.message_popup("성공")
+            local message
+            if i ~= 0 then
+                message = tostring(value) .. " - 잘못된 입력입니다."
+            else
+                message = "성공"
+            end
+
+            local success_popup = PopupManager.message_popup(message)
         end
     )
 
