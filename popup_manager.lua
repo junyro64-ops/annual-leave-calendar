@@ -11,6 +11,7 @@ local GraphicsButton = require("graphics_button")
 
 local CELL_TYPE = require("constants").CELL_TYPE
 local Fonts = require("constants").FONTS
+local FONT_COLOR = require("constants").FONT_COLOR
 local ButtonGraphics = require("constants").ButtonGraphics
 
 function PopupManager.registerPopup(popup)
@@ -33,7 +34,7 @@ local function openApplyLeavePopup()
     table.insert(PopupManager.activePopup, applyLeavePopup)
 end
 
-function PopupManager.setCellPopup(cell, width, height, year, month, day)
+function PopupManager.setCellPopup(cell, width, height, year, month, day, checkHoliday)
     cell:setOnClick(
         function()
             if cell.type == CELL_TYPE.YEAR or cell.type == CELL_TYPE.MONTH then return end
@@ -42,6 +43,9 @@ function PopupManager.setCellPopup(cell, width, height, year, month, day)
             
             local date = string.format("%02d/%02d/%02d", year, month, day)
             local setDate = Button:new(0, 0, 200, 50, date)
+
+            local isHoliday = checkHoliday()
+            if isHoliday then setDate:setFontColor(FONT_COLOR.RED) end
             popupCell:addChild(setDate)
 
             popupCell.employeesOnLeave = {}

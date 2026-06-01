@@ -84,7 +84,6 @@ function Button:customDraw()
         love.graphics.rectangle("line", 0, 0, self.width, self.height)
     end
 
-    love.graphics.setColor(0, 0, 0)
     love.graphics.setFont(self.Fonts.medium)
     local width = self.Fonts.medium:getWidth(self.text)
     local height = self.Fonts.medium:getHeight()

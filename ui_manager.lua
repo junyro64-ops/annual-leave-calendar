@@ -170,10 +170,12 @@ function UIManager.wheelmoved(x, y)
     end
 end
 
-local function applyClick(element, x, y)
-    if element:isClicked(x, y) == true then
-        if element.onClick then
+local function applyClick(element, x, y, click)
+    if element:isClicked(x, y) then
+        if click == 1 and element.onClick then
             element:onClick()
+        elseif click == 2 and element.rightClick then
+            element:rightClick()
         end
         return true
     end
@@ -185,7 +187,7 @@ function UIManager.mousePressed(x, y, mouseButton, presses)
         local topIndex = #PopupManager.activePopup
         local topPopup = PopupManager.activePopup[topIndex]
 
-        if topPopup:isClicked(x, y) == false then
+        if not topPopup:isClicked(x, y) then
             table.remove(PopupManager.activePopup, topIndex)
             return true
         end
@@ -197,23 +199,22 @@ function UIManager.mousePressed(x, y, mouseButton, presses)
         return true
     end
 
-    if mouseButton == 1 then
-        for i = #UIManager.elements, 1, -1 do
-            if applyClick(UIManager.elements[i], x, y) then
-                return true
-            end
-        end
-        for i = 1, #UIManager.headers do
-            if applyClick(UIManager.headers[i], x, y) then
-                return true
-            end
-        end
-        for i = 1, #UIManager.currentCalendar do
-            if applyClick(UIManager.currentCalendar[i], x, y) then
-                return true
-            end
+    for i = #UIManager.elements, 1, -1 do
+        if applyClick(UIManager.elements[i], x, y, mouseButton) then
+            return true
         end
     end
+    for i = 1, #UIManager.headers do
+        if applyClick(UIManager.headers[i], x, y, mouseButton) then
+            return true
+        end
+    end
+    for i = 1, #UIManager.currentCalendar do
+        if applyClick(UIManager.currentCalendar[i], x, y, mouseButton) then
+            return true
+        end
+    end
+    
     return false
 end
 
@@ -317,7 +318,16 @@ function UIManager.loadCalendar(year, month)
         local dayCell = Cell:new(x, y, CELL_SIZE.DAY.width, CELL_SIZE.DAY.height, cellType, dateNumber)
         table.insert(UIManager.currentCalendar, dayCell)
         if dayCell.type == CELL_TYPE.DAY then
-            PopupManager.setCellPopup(dayCell, 400, 300, year, month, dateNumber)
+            local isHoliday = function ()
+                return CalendarManager.calendarDataTree[year][month][dateNumber].isHoliday
+            end
+            PopupManager.setCellPopup(dayCell, 400, 300, year, month, dateNumber, isHoliday)
+            dayCell:setOnRightClick(
+                function ()
+                    CalendarManager.calendarDataTree[year][month][dateNumber].isHoliday =
+                        not CalendarManager.calendarDataTree[year][month][dateNumber].isHoliday
+                end
+            )
         end
 	end
 

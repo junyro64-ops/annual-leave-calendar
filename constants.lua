@@ -49,6 +49,12 @@ Constants.FONTS = {
 	small = love.graphics.newFont("font/NanumGothic.ttf", 16)
 }
 
+Constants.FONT_COLOR = {
+    RED = "RED",
+    WHITE = "WHITE",
+    BLACK = "BLACK"
+}
+
 Constants.LEAVE_AMOUNT = {
     LEAVE_AM_QUARTER = 0.25,
     LEAVE_PM_QUARTER = 0.25,
