@@ -324,6 +324,12 @@ function UIManager.loadCalendar(year, month)
             PopupManager.setCellPopup(dayCell, 400, 300, year, month, dateNumber, isHoliday)
             dayCell:setOnRightClick(
                 function ()
+                    -- first, check if it is Sunday
+                    local firstSunday = (8 - startingWeekday) % 7 + 1
+                    for day = firstSunday, daysInMonth, 7 do
+                        if day == dateNumber then return end
+                    end
+                    -- then apply right click
                     CalendarManager.calendarDataTree[year][month][dateNumber].isHoliday =
                         not CalendarManager.calendarDataTree[year][month][dateNumber].isHoliday
                 end
