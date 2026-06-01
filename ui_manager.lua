@@ -332,6 +332,14 @@ function UIManager.loadCalendar(year, month)
                     -- then apply right click
                     CalendarManager.calendarDataTree[year][month][dateNumber].isHoliday =
                         not CalendarManager.calendarDataTree[year][month][dateNumber].isHoliday
+                    -- update holiday data table
+                    CalendarManager.holidayTable[year] = CalendarManager.holidayTable[year] or {}
+                    CalendarManager.holidayTable[year][month] = CalendarManager.holidayTable[year][month] or {}
+                    if CalendarManager.calendarDataTree[year][month][dateNumber].isHoliday then
+                        CalendarManager.holidayTable[year][month][dateNumber] = true
+                    else
+                        CalendarManager.holidayTable[year][month][dateNumber] = nil
+                    end
                 end
             )
         end

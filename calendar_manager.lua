@@ -1,8 +1,11 @@
 local CalendarManager = {}
 
+local json = require("json")
+
 CalendarManager.calendarDataTree = {}
 CalendarManager.startingWeekDayTable = {}
 CalendarManager.daysInMonthTable = {}
+CalendarManager.holidayTable = {}
 
 local function calculateDays(year, month)
     local startingWeekday = os.date(
@@ -46,6 +49,11 @@ function CalendarManager.createYearTree(year)
                         isHoliday = false, 
                         employees = {} 
                     }
+                if CalendarManager.holidayTable[year] and
+                   CalendarManager.holidayTable[year][month] and
+                   CalendarManager.holidayTable[year][month][day] then
+                    CalendarManager.calendarDataTree[year][month][day].isHoliday = true
+                end
             end
         )
 
