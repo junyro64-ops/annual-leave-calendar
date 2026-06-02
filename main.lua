@@ -1,10 +1,20 @@
+local SaveManager = require("save_manager")
 local EmployeeManager = require("employee_manager")
+local CalendarManager = require("calendar_manager")
 local UIManager = require("ui_manager")
 
 local SCREEN_SIZE = require("constants").SCREEN_SIZE
 
 function love.load()
-	EmployeeManager.loadData()
+	local saveData = SaveManager.load("calendar_save_data.json")
+
+	if saveData then
+		EmployeeManager.database = saveData.employees
+		CalendarManager.holidayTable = saveData.holidays
+	else
+		EmployeeManager.database = {}
+		CalendarManager.holidayTable = {}
+	end
 
 	-- get the current system time
 	UIManager.setCurrentDate()
@@ -45,7 +55,14 @@ function love.draw()
 
 end
 
+-- The save file is located in the following directory:
+-- C:\Users\(user)\AppData\Roaming\LOVE\calendar
 function love.quit()
-	EmployeeManager.saveData()
+	local Data = {
+		employees = EmployeeManager.database,
+		holidays = CalendarManager.holidayTable
+	}
+	SaveManager.save("calendar_save_data.json", Data)
+
 	return false
 end
