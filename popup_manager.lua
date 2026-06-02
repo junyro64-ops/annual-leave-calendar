@@ -24,13 +24,16 @@ local function closePopup()
     end
 end
 
-function PopupManager.createPopup(width, height)
+function PopupManager.confirmCancelPopup(width, height, func)
     local _popup = popup:new(width, height, closePopup)
     return _popup
 end
 
 local function openApplyLeavePopup()
     local applyLeavePopup = popup:new(300, 200, closePopup)
+
+    -- NEED TO IMPLEMENT POPUP FOR EMPLOYEE'S APPLYING LEAVE
+
     table.insert(PopupManager.activePopup, applyLeavePopup)
 end
 
@@ -213,14 +216,42 @@ function PopupManager.showEmployee()
     table.insert(PopupManager.activePopup, newPopup)
 end
 
-function PopupManager.message_popup(text)
+function PopupManager.message_popup(text, func)
     local newPopup = popup:new(500, 200, closePopup)
     local width = Fonts.medium:getWidth(text)
     local height = Fonts.medium:getHeight()
     local x = (500 - width) / 2
     local y = (200 - height) / 2
+
+    if func then
+        y = y - 20
+    end
+
     local textMessage = Button:new(x, y, width, height, text)
     newPopup:addChild(textMessage)
+
+    if func then
+        local buttonWidth = 100
+        local buttonHeight = 40
+        local y = newPopup.height - buttonHeight - 10
+        
+        local confirm = Button:new(10, y, buttonWidth, buttonHeight, "예")
+        confirm:setOnClick(
+            function ()
+                closePopup()
+                if func then func() end
+            end
+        )
+        local cancel = Button:new(newPopup.width - buttonWidth - 10, y, buttonWidth, buttonHeight, "아니요")
+        cancel:setOnClick(
+            function ()
+                closePopup()
+            end
+        )
+        newPopup:addChild(confirm)
+        newPopup:addChild(cancel)
+    end
+
     PopupManager.registerPopup(newPopup)
     return newPopup
 end

@@ -1,6 +1,8 @@
 local EmployeeManager = {}
 EmployeeManager.database = {}
 
+local deletedData = {}
+
 local ERROR_CHECK = require("constants").ERROR_CHECK
 
 -- Checks if the inputs are valid in addEmployee popup
@@ -38,6 +40,13 @@ function EmployeeManager.addEmployee(name, maxLeave, year, month)
 	return ERROR_CHECK.SUCCESS, 0, 1
 end
 
+function EmployeeManager.deleteEmployee(name)
+	if not EmployeeManager.database[name] then return ERROR_CHECK.NOT_FOUND end
+
+	deletedData[name] = EmployeeManager.database[name]
+	EmployeeManager.database[name] = nil
+end
+
 function EmployeeManager.getEmployeeData(name)
 	local data = EmployeeManager.database[name]
 
@@ -46,6 +55,10 @@ function EmployeeManager.getEmployeeData(name)
 	else
 		return data
 	end
+end
+
+function EmployeeManager.getDeletedData()
+	return deletedData
 end
 
 -- this function should run whenver the application loads
