@@ -7,24 +7,31 @@ local ERROR_CHECK = require("constants").ERROR_CHECK
 
 -- Checks if the inputs are valid in addEmployee popup
 -- The order of inputs are name, maxLeave, startYear, startMonth
-local validationRules ={
+local validationRules = {
 	function(value) return value ~= nil and string.len(value) > 0 end;
-	function(value) return value ~= nil and value > 0 end;
+	function(value) return value ~= nil and (value > 0) and (value < 50) end;
 	function(value) 
 		local year = os.date("*t").year
-		return value ~= nil and (year - 1 < value) and (value < year + 1)
+		return value ~= nil and ((value >= year - 1) and (value <= year))
 	end;
-	function(value) return value ~= nil and 0 < value < 13 end
+	function(value) return value ~= nil and (0 < value) and (value < 13) end
+}
+
+local validationCheck = {
+	"이름이 입력되지 않았습니다.",
+	"유효하지 않은 여차 횟수입니다.",
+	"시작연도는 작년부터 가능합니다.",
+	"유요하지 않은 월 입니다."
 }
 
 function EmployeeManager.addEmployee(name, maxLeave, year, month)
-	if EmployeeManager.database[name] then return ERROR_CHECK.DATA_EXIST end
+	if EmployeeManager.database[name] then return ERROR_CHECK.DATA_EXIST, "등록된 이름입니다" end
 	local inputData = {name, maxLeave, year, month}
 
-	for i, value in ipairs(inputData)do
-		local validation = validationRules[i]
+	for i, validation in ipairs(validationRules)do
+		local value = inputData[i]
 		if validation and not validation(value) then 
-			return ERROR_CHECK.INVALID_DATA, i, value
+			return ERROR_CHECK.INVALID_DATA, validationCheck[i]
 		end
 	end
 	
@@ -37,7 +44,7 @@ function EmployeeManager.addEmployee(name, maxLeave, year, month)
 		leaveDates = {}
 	}
 
-	return ERROR_CHECK.SUCCESS, 0, 1
+	return ERROR_CHECK.SUCCESS, 0
 end
 
 function EmployeeManager.deleteEmployee(name)

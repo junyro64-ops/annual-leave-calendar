@@ -8,6 +8,7 @@ local popup = require("popup")
 local Button = require("button")
 local TextInput = require("text_input")
 local GraphicsButton = require("graphics_button")
+local ERROR_CHECK = require("constants").ERROR_CHECK
 
 local CELL_TYPE = require("constants").CELL_TYPE
 local Fonts = require("constants").FONTS
@@ -157,23 +158,15 @@ function PopupManager.addEmployee()
             local startYear = tonumber(startYearInput:returnText())
             local startMonth = tonumber(startMonthInput:returnText())
 
-            if name == nil or name == "" or maxLeave == nil or startYear == nil or startMonth == nil then
-                local error_popup = PopupManager.message_popup("입력 오류")
-                return
-            end
-
-            if EmployeeManager.getEmployeeData(name) then
-                local error_popup = PopupManager.message_popup("이미 등록된 사원입니다")
-                return
-            end
-
-            local error_check, i, value = EmployeeManager.addEmployee(name, maxLeave, startYear, startMonth)
+            local error_check, validity = EmployeeManager.addEmployee(name, maxLeave, startYear, startMonth)
 
             local message
-            if i ~= 0 then
-                message = tostring(value) .. " - 잘못된 입력입니다."
-            else
+            if error_check == ERROR_CHECK.INVALID_DATA or error_check == ERROR_CHECK.DATA_EXIST then
+                message = validity
+            elseif error_check == ERROR_CHECK.SUCCESS then
                 message = "성공"
+            else
+                message = "문제가 발생했습니다."
             end
 
             local success_popup = PopupManager.message_popup(message)
