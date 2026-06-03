@@ -126,7 +126,7 @@ end
 
 local function setInputTitles(popup, x, y, text)
     local width = 300
-    local height = 100
+    local height = 70
     local inputTitle = Button:new(x, y, width, height, text)
     inputTitle:setTextToLeft()
     popup:addChild(inputTitle)
@@ -135,21 +135,24 @@ end
 function PopupManager.addEmployee()
     local newPopup = popup:new(800, 600, closePopup)
     local x = 50
-    local y = 90
+    local y = 70
     setInputTitles(newPopup, x, y,     "이름")
     setInputTitles(newPopup, x, y * 2, "총 연차 횟수")
     setInputTitles(newPopup, x, y * 3, "연차 시작 연도")
     setInputTitles(newPopup, x, y * 4, "연차 시작 월")
-    local nameInput = TextInput:new(x + 300, y, 300, 90)
+    setInputTitles(newPopup, x, y * 5, "직책")
+    local nameInput = TextInput:new(x + 300, y, 300, y)
     newPopup:addChild(nameInput)
-    local maxLeaveInput = TextInput:new(x + 300, y * 2, 300, 90)
+    local maxLeaveInput = TextInput:new(x + 300, y * 2, 300, y)
     newPopup:addChild(maxLeaveInput)
-    local startYearInput = TextInput:new(x + 300, y * 3, 300, 90)
+    local startYearInput = TextInput:new(x + 300, y * 3, 300, y)
     newPopup:addChild(startYearInput)
-    local startMonthInput = TextInput:new(x + 300, y * 4, 300, 90)
+    local startMonthInput = TextInput:new(x + 300, y * 4, 300, y)
     newPopup:addChild(startMonthInput)
+    local position = TextInput:new(x + 300, y *5, 300, y)
+    newPopup:addChild(position)
 
-    local confirm = GraphicsButton.createButton(x + 100, y * 5 + 40, "확인")
+    local confirm = GraphicsButton.createButton(x + 100, y * 6 + 40, "확인")
     newPopup:addChild(confirm)
     confirm:setOnClick(
         function()
@@ -158,7 +161,8 @@ function PopupManager.addEmployee()
             local startYear = tonumber(startYearInput:returnText())
             local startMonth = tonumber(startMonthInput:returnText())
 
-            local error_check, validity = EmployeeManager.addEmployee(name, maxLeave, startYear, startMonth)
+            local error_check, validity = 
+                EmployeeManager.addEmployee(name, maxLeave, startYear, startMonth, position)
 
             local message
             if error_check == ERROR_CHECK.INVALID_DATA or error_check == ERROR_CHECK.DATA_EXIST then

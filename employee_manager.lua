@@ -24,7 +24,7 @@ local validationCheck = {
 	"유요하지 않은 월 입니다."
 }
 
-function EmployeeManager.addEmployee(name, maxLeave, year, month)
+function EmployeeManager.addEmployee(name, maxLeave, year, month, position)
 	if EmployeeManager.database[name] then return ERROR_CHECK.DATA_EXIST, "등록된 이름입니다" end
 	local inputData = {name, maxLeave, year, month}
 
@@ -40,6 +40,7 @@ function EmployeeManager.addEmployee(name, maxLeave, year, month)
 		maxLeave = maxLeave,
 		leaveStartYear = year,
 		leaveStartMonth = month,
+		postion = position,
 		usedLeave = 0,
 		leaveDates = {}
 	}
@@ -81,9 +82,15 @@ function EmployeeManager.checkLeaveStart(data, year, month)
 end
 
 function EmployeeManager.cancelLeave(name, year, month, day, amount)
+	local time = os.date("*t")
+	if year ~= time.year or month ~= time.month or day <= time.day then
+		return ERROR_CHECK.INVALID_DATA
+	end
 	local data = EmployeeManager.database[name]
 	data.usedLeave = data.usedLeave - amount
 	data.leaveDates[year][month][day] = nil
+
+	return ERROR_CHECK.SUCCESS
 end
 
 -- The current function below might cause an issue when 
