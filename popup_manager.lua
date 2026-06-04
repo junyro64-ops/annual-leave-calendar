@@ -159,8 +159,6 @@ function PopupManager.addEmployee()
     newPopup:addChild(confirm)
     confirm:setOnClick(
         function()
-            closePopup()
-            
             local name = nameInput:returnText()
             local maxLeave = tonumber(maxLeaveInput:returnText())
             local startYear = tonumber(startYearInput:returnText())
@@ -176,6 +174,7 @@ function PopupManager.addEmployee()
             local error_check, validity = 
                 EmployeeManager.addEmployee(name, maxLeave, startYear, startMonth, position)
 
+            closePopup()
             PopupManager.message_popup(validity)
         end
     )
