@@ -41,10 +41,12 @@ local function openApplyLeavePopup()
     table.insert(PopupManager.activePopup, applyLeavePopup)
 end
 
-function PopupManager.setCellPopup(cell, width, height, year, month, day, checkHoliday)
+function PopupManager.setCellPopup(cell, width, height, year, month, day, checkHoliday, isWeekends)
     cell:setOnClick(
         function()
             if cell.type == CELL_TYPE.YEAR or cell.type == CELL_TYPE.MONTH then return end
+            if isWeekends then return end
+            
 
             local popupCell = popup:new(width, height, closePopup)
             

@@ -259,6 +259,19 @@ function UIManager.loadWeekdays()
 	end
 end
 
+local function checkWeekends(dateNumber, startingWeekday, daysInMonth)
+    local firstSunday = (8 - startingWeekday) % 7 + 1
+    local firstSaturday = (8 - startingWeekday) % 7 + 7
+    for day = firstSunday, daysInMonth, 7 do
+        if day == dateNumber then return true end
+    end
+    for day = firstSaturday, daysInMonth, 7 do
+        if day == dateNumber then return true end
+    end
+
+    return false
+end
+
 function UIManager.loadCalendar(year, month)
 
 	-- creates the entire year date table
@@ -321,14 +334,13 @@ function UIManager.loadCalendar(year, month)
             local isHoliday = function ()
                 return CalendarManager.calendarDataTree[year][month][dateNumber].isHoliday
             end
-            PopupManager.setCellPopup(dayCell, 400, 300, year, month, dateNumber, isHoliday)
+            local isWeekends = checkWeekends(dateNumber, startingWeekday, daysInMonth)
+            PopupManager.setCellPopup(dayCell, 400, 300, year, month, dateNumber, isHoliday, isWeekends)
             dayCell:setOnRightClick(
                 function ()
-                    -- first, check if it is Sunday
-                    local firstSunday = (8 - startingWeekday) % 7 + 1
-                    for day = firstSunday, daysInMonth, 7 do
-                        if day == dateNumber then return end
-                    end
+                    -- first, check if it is weekends
+                    if isWeekends then return end
+
                     -- then apply right click
                     CalendarManager.calendarDataTree[year][month][dateNumber].isHoliday =
                         not CalendarManager.calendarDataTree[year][month][dateNumber].isHoliday
