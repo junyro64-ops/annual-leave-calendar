@@ -2,8 +2,6 @@ local PopupManager = {}
 
 PopupManager.activePopup = {}
 
-local EmployeeManager = require("employee_manager")
-
 local popup = require("popup")
 local Button = require("button")
 local TextInput = require("text_input")
@@ -41,23 +39,30 @@ local function openApplyLeavePopup()
     table.insert(PopupManager.activePopup, applyLeavePopup)
 end
 
-function PopupManager.setCellPopup(cell, width, height, year, month, day, checkHoliday, isWeekends)
+function PopupManager.setCellPopup(cell, width, height, year, month, day, isHoliday, employeeList)
     cell:setOnClick(
         function()
             if cell.type == CELL_TYPE.YEAR or cell.type == CELL_TYPE.MONTH then return end
-            if isWeekends then return end
-            
+            if isHoliday then return end
 
             local popupCell = popup:new(width, height, closePopup)
             
             local date = string.format("%02d/%02d/%02d", year, month, day)
             local setDate = Button:new(0, 0, 200, 50, date)
 
-            local isHoliday = checkHoliday()
-            if isHoliday then setDate:setFontColor(FONT_COLOR.RED) end
             popupCell:addChild(setDate)
 
-            popupCell.employeesOnLeave = {}
+            if employeeList then
+                local x = 0
+                local y = 50
+                local width = 200
+                local height = 25
+
+                for i, name in ipairs(employeeList) do
+                    local employee = Button:new(x, y + ((i - 1) * height), width, height, name)
+                    popupCell:addChild(employee)
+                end
+            end
             
             local applyLeaveButton = Button:new(20, height - 50, 120, 40, "연차신청")
             applyLeaveButton:setOnClick(
@@ -137,7 +142,7 @@ local function setInputTitles(popup, x, y, text)
     popup:addChild(inputTitle)
 end
 
-function PopupManager.addEmployee()
+function PopupManager.addEmployee(EmployeeManager)
     local newPopup = popup:new(800, 600, closePopup)
     local x = 50
     local y = 70
@@ -176,7 +181,7 @@ function PopupManager.addEmployee()
             local error_check, validity = 
                 EmployeeManager.addEmployee(name, maxLeave, startYear, startMonth, position)
 
-            closePopup()
+            if error_check == ERROR_CHECK.SUCCESS then closePopup() end
             PopupManager.message_popup(validity)
         end
     )
@@ -184,7 +189,7 @@ function PopupManager.addEmployee()
     table.insert(PopupManager.activePopup, newPopup)
 end
 
-local function editEmployeePopup(name)
+local function editEmployeePopup(name, EmployeeManager)
     local newPopup = popup:new(800, 600, closePopup)
     local x = 50
     local y = 70
@@ -219,7 +224,7 @@ local function editEmployeePopup(name)
             local error_check, validity = 
                 EmployeeManager.editEmployee(name, maxLeave, startYear, startMonth, position)
 
-            closePopup()
+            if error_check == ERROR_CHECK.SUCCESS then closePopup() end
 
             PopupManager.message_popup(validity)
 
@@ -229,7 +234,7 @@ local function editEmployeePopup(name)
     table.insert(PopupManager.activePopup, newPopup)
 end
 
-local function rightClickPopup(name)
+local function rightClickPopup(name, EmployeeManager)
     local newPopup = popup:new(100, 100)
     local x, y = love.mouse.getPosition()
     newPopup:setPositionToClick(x, y)
@@ -243,7 +248,7 @@ local function rightClickPopup(name)
     editButton:setOnClick(
         function ()
             closePopup(1)
-            editEmployeePopup(name)
+            editEmployeePopup(name, EmployeeManager)
         end
     )
     local deleteButton = Button:new(x, y + height, width, height, "삭제")
@@ -260,7 +265,7 @@ local function rightClickPopup(name)
     table.insert(PopupManager.activePopup, newPopup)
 end
 
-function PopupManager.showEmployee()
+function PopupManager.showEmployee(EmployeeManager)
     local newPopup = popup:new(800, 600, closePopup)
     newPopup.is_scrollable = true
     newPopup:setScrollWindow(700, 500)
@@ -284,7 +289,7 @@ function PopupManager.showEmployee()
         employee.isStatic = false
         employee:setOnRightClick(
             function ()
-                rightClickPopup(name)
+                rightClickPopup(name, EmployeeManager)
             end
         )
         newPopup:addChild(employee)

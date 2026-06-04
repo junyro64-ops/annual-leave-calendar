@@ -7,6 +7,7 @@ local UIManager = {
 
 UIManager.activePopup = {}
 
+local Button = require("button")
 local GraphicsButton = require("graphics_button")
 
 local CalendarManager = require("calendar_manager")
@@ -259,9 +260,30 @@ function UIManager.loadWeekdays()
 	end
 end
 
+local function cellEmployeeLeaveList(cell, year, month, day)
+    if EmployeeManager.leaveDateList == nil then return end
+    if EmployeeManager.leaveDateList[year] == nil then return end
+    if EmployeeManager.leaveDateList[year][month] == nil then return end
+    if EmployeeManager.leaveDateList[year][month][day] == nil then return end
+
+    local list = EmployeeManager.leaveDateList[year][month][day]
+
+    local x = 5
+    local y = 10
+    local width = 160
+    local height = 10
+
+    for i, name in ipairs(list) do
+        local employee = Button:new(x, y * i, width, height, name)
+        cell:addChild(employee)
+    end
+
+    return list
+end
+
 local function checkWeekends(dateNumber, startingWeekday, daysInMonth)
     local firstSunday = (8 - startingWeekday) % 7 + 1
-    local firstSaturday = (8 - startingWeekday) % 7 + 7
+    local firstSaturday = (14 - startingWeekday) % 7 + 1
     for day = firstSunday, daysInMonth, 7 do
         if day == dateNumber then return true end
     end
@@ -331,15 +353,18 @@ function UIManager.loadCalendar(year, month)
         local dayCell = Cell:new(x, y, CELL_SIZE.DAY.width, CELL_SIZE.DAY.height, cellType, dateNumber)
         table.insert(UIManager.currentCalendar, dayCell)
         if dayCell.type == CELL_TYPE.DAY then
-            local isHoliday = function ()
-                return CalendarManager.calendarDataTree[year][month][dateNumber].isHoliday
-            end
+            local employeeList = cellEmployeeLeaveList(dayCell, year, month, dateNumber)
+            local isHoliday = CalendarManager.calendarDataTree[year][month][dateNumber].isHoliday
             local isWeekends = checkWeekends(dateNumber, startingWeekday, daysInMonth)
-            PopupManager.setCellPopup(dayCell, 400, 300, year, month, dateNumber, isHoliday, isWeekends)
+            PopupManager.setCellPopup(dayCell, 400, 300, year, month, dateNumber, isHoliday or isWeekends, employeeList)
             dayCell:setOnRightClick(
                 function ()
                     -- first, check if it is weekends
                     if isWeekends then return end
+                    
+                    -------------------------------------------------------------------
+                    ---Need to implement a check if the date cell has any employees on leave
+                    -------------------------------------------------------------------
 
                     -- then apply right click
                     CalendarManager.calendarDataTree[year][month][dateNumber].isHoliday =
@@ -352,6 +377,7 @@ function UIManager.loadCalendar(year, month)
                     else
                         CalendarManager.holidayTable[year][month][dateNumber] = nil
                     end
+                    calendar_changed = true
                 end
             )
         end
@@ -365,7 +391,7 @@ function UIManager.loadCalendar(year, month)
     table.insert(UIManager.elements, add_employee_button)
     add_employee_button:setOnClick(
         function()
-            PopupManager.addEmployee()
+            PopupManager.addEmployee(EmployeeManager)
         end
     )
 
@@ -373,7 +399,7 @@ function UIManager.loadCalendar(year, month)
     table.insert(UIManager.elements, show_employee_button)
     show_employee_button:setOnClick(
         function()
-            PopupManager.showEmployee()
+            PopupManager.showEmployee(EmployeeManager)
         end
     )
 end

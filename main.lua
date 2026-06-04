@@ -10,9 +10,11 @@ local function loadData()
 
 	if saveData then
 		EmployeeManager.database = saveData.employees
+		EmployeeManager.leaveDateList = saveData.leaveDates
 		CalendarManager.holidayTable = saveData.holidays
 	else
 		EmployeeManager.database = {}
+		EmployeeManager.leaveDateList = {}
 		CalendarManager.holidayTable = {}
 	end
 end
@@ -20,6 +22,7 @@ end
 local function saveData()
 	local Data = {
 		employees = EmployeeManager.database,
+		leaveDates = EmployeeManager.leaveDateList,
 		holidays = CalendarManager.holidayTable
 	}
 	SaveManager.save("calendar_save_data.json", Data)

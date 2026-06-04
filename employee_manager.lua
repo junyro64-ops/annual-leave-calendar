@@ -1,5 +1,6 @@
 local EmployeeManager = {}
 EmployeeManager.database = {}
+EmployeeManager.leaveDateList = {}
 
 local deletedData = {}
 
@@ -129,6 +130,12 @@ function EmployeeManager.cancelLeave(name, year, month, day, amount)
 	data.usedLeave = data.usedLeave - amount
 	data.leaveDates[year][month][day] = nil
 
+	for i, _name in ipairs(EmployeeManager.leaveDateList[year][month][day]) do
+		if name == _name then
+			table.remove(EmployeeManager.leaveDateList[year][month][day][i])
+		end
+	end
+
 	return ERROR_CHECK.SUCCESS
 end
 
@@ -157,6 +164,12 @@ function EmployeeManager.useLeave(name, year, month, day, amount)
 	data.leaveDates[year][month][day] = amount
 	
 	data.usedLeave = data.usedLeave + amount
+
+	EmployeeManager.leaveDateList[year] = EmployeeManager.leaveDateList[year] or {}
+	EmployeeManager.leaveDateList[year][month] = EmployeeManager.leaveDateList[year][month] or {}
+	EmployeeManager.leaveDateList[year][month][day] = EmployeeManager.leaveDateList[year][month][day] or {}
+
+	table.insert(EmployeeManager.leaveDateList[year][month][day], name)
 
 	return ERROR_CHECK.SUCCESS
 end
