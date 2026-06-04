@@ -19,6 +19,10 @@ function TextInput:new(x, y, width, height)
     return instance
 end
 
+function TextInput:changePlaceHolder (text)
+    self.placeholder = text
+end
+
 function TextInput:update(dt)
     if self.isActive then
         self.cursorTimer = self.cursorTimer + dt

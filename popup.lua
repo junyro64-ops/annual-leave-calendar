@@ -19,16 +19,16 @@ function popup:new(width, height, onClose)
 	instance.scroll_window_x = 0
 	instance.scroll_window_y = 0
 
-	local closeButton = Button:new(width - 45, 15, 30, 30, "X")
-	closeButton:setOnClick(
-		function()
-			if onClose then
-				onClose()
-			end
-		end
-	)
-	closeButton:setDrawLine()
-	table.insert(instance.children, closeButton)
+	if onClose then
+		local closeButton = Button:new(width - 45, 15, 30, 30, "X")
+		closeButton:setOnClick(
+			function()
+					onClose()
+				end
+			)
+		closeButton:setDrawLine()
+		table.insert(instance.children, closeButton)
+	end
 	
 	return instance
 end
@@ -126,21 +126,23 @@ function popup:update(dt)
 	end
 end
 
-local function activateClick(element, x, y, presses)
+local function activateClick(element, x, y, click, presses)
 	if element:isClicked(x, y) then
 		element.isActive = true
 		if presses > 1 and element.onDoubleClick then
 			element:onDoubleClick()
 		end
-		if element.onClick then
-			element:onClick()
-		end
+		if click == 1 and element.onClick then
+            element:onClick()
+        elseif click == 2 and element.rightClick then
+            element:rightClick()
+        end
 		return true
 	end
 	return false
 end
 
-function popup:mousePressed(presses)
+function popup:mousePressed(mouseButton, presses)
 	local x, y = getLocalCoordinate(self)
 
 	for _, element in ipairs(self.children) do
@@ -150,14 +152,14 @@ function popup:mousePressed(presses)
 	for _, element in ipairs(self.children) do
 
 		if element.isStatic then
-			if activateClick(element, x, y, presses) then return true end
+			if activateClick(element, x, y, mouseButton, presses) then return true end
 		else
 			local top = self.scroll_window_y - self.y
 			local bottom = top + self.scroll_height
 
 			if y >= top and y <= bottom then
 				local local_y = y - (self.scrollY or 0)
-				if activateClick(element, x, local_y, presses) then return true end
+				if activateClick(element, x, local_y, mouseButton, presses) then return true end
 			end
 		end
 

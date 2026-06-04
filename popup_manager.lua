@@ -19,9 +19,12 @@ function PopupManager.registerPopup(popup)
     table.insert(PopupManager.activePopup, popup)
 end
 
-local function closePopup()
+local function closePopup(value)
     if #PopupManager.activePopup > 0 then
         table.remove(PopupManager.activePopup)
+        if value then
+            table.remove(PopupManager.activePopup, #PopupManager.activePopup)
+        end
     end
 end
 
@@ -149,33 +152,109 @@ function PopupManager.addEmployee()
     newPopup:addChild(startYearInput)
     local startMonthInput = TextInput:new(x + 300, y * 4, 300, y)
     newPopup:addChild(startMonthInput)
-    local position = TextInput:new(x + 300, y *5, 300, y)
-    newPopup:addChild(position)
+    local positionInput = TextInput:new(x + 300, y *5, 300, y)
+    newPopup:addChild(positionInput)
 
     local confirm = GraphicsButton.createButton(x + 100, y * 6 + 40, "확인")
     newPopup:addChild(confirm)
     confirm:setOnClick(
         function()
+            closePopup()
+            
             local name = nameInput:returnText()
             local maxLeave = tonumber(maxLeaveInput:returnText())
             local startYear = tonumber(startYearInput:returnText())
             local startMonth = tonumber(startMonthInput:returnText())
 
+            local position = "사원"
+
+            local position_text = positionInput:returnText()
+            if position_text and position_text:match("%S") then
+                position = position_text
+            end
+
             local error_check, validity = 
                 EmployeeManager.addEmployee(name, maxLeave, startYear, startMonth, position)
 
-            local message
-            if error_check == ERROR_CHECK.INVALID_DATA or error_check == ERROR_CHECK.DATA_EXIST then
-                message = validity
-            elseif error_check == ERROR_CHECK.SUCCESS then
-                message = "성공"
-            else
-                message = "문제가 발생했습니다."
-            end
-
-            local success_popup = PopupManager.message_popup(message)
+            PopupManager.message_popup(validity)
         end
     )
+
+    table.insert(PopupManager.activePopup, newPopup)
+end
+
+local function editEmployeePopup(name)
+    local newPopup = popup:new(800, 600, closePopup)
+    local x = 50
+    local y = 70
+    setInputTitles(newPopup, x, y,     "총 연차 횟수")
+    setInputTitles(newPopup, x, y * 2, "연차 시작 월")
+    setInputTitles(newPopup, x, y * 3, "직책")
+    local maxLeaveInput = TextInput:new(x + 300, y, 300, y)
+    newPopup:addChild(maxLeaveInput)
+    local startMonthInput = TextInput:new(x + 300, y * 2, 300, y)
+    newPopup:addChild(startMonthInput)
+    local positionInput = TextInput:new(x + 300, y * 3, 300, y)
+    newPopup:addChild(positionInput)
+
+    local confirm = GraphicsButton.createButton(x + 100, y * 6 + 40, "확인")
+    newPopup:addChild(confirm)
+    confirm:setOnClick(
+        function()
+            local data = EmployeeManager.database[name]
+            local _maxLeave = tonumber(maxLeaveInput:returnText())
+            local startYear = data.leaveStartYear
+            local _startMonth = tonumber(startMonthInput:returnText())
+            local position_text = positionInput:returnText()
+            
+            local maxLeave = _maxLeave ~= nil and _maxLeave or data.maxLeave
+            local startMonth = _startMonth ~= nil and _startMonth or data.leaveStartMonth
+
+            local position = data.position
+            if position_text and position_text:match("%S") then
+                position = position_text
+            end
+
+            local error_check, validity = 
+                EmployeeManager.editEmployee(name, maxLeave, startYear, startMonth, position)
+
+            closePopup()
+
+            PopupManager.message_popup(validity)
+
+        end
+    )
+
+    table.insert(PopupManager.activePopup, newPopup)
+end
+
+local function rightClickPopup(name)
+    local newPopup = popup:new(100, 100)
+    local x, y = love.mouse.getPosition()
+    newPopup:setPositionToClick(x, y)
+
+    x = 0
+    y = 10
+    local width = 100
+    local height = 40
+
+    local editButton = Button:new(x, y, width, height, "수정")
+    editButton:setOnClick(
+        function ()
+            closePopup(1)
+            editEmployeePopup(name)
+        end
+    )
+    local deleteButton = Button:new(x, y + height, width, height, "삭제")
+    deleteButton:setOnClick(
+        function ()
+            closePopup(1)
+            local error, message = EmployeeManager.deleteEmployee(name)
+            PopupManager.message_popup(message)
+        end
+    )
+    newPopup:addChild(editButton)
+    newPopup:addChild(deleteButton)
 
     table.insert(PopupManager.activePopup, newPopup)
 end
@@ -202,9 +281,9 @@ function PopupManager.showEmployee()
     for i, name in ipairs(sortedNames) do
         local employee = Button:new(x, y + (height * (i - 1)), width, height, name)
         employee.isStatic = false
-        employee:setOnClick(
+        employee:setOnRightClick(
             function ()
-                
+                rightClickPopup(name)
             end
         )
         newPopup:addChild(employee)

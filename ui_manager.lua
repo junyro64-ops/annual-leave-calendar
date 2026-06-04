@@ -193,7 +193,7 @@ function UIManager.mousePressed(x, y, mouseButton, presses)
         end
 
         if topPopup.mousePressed then
-            topPopup:mousePressed(presses)
+            topPopup:mousePressed(mouseButton, presses)
         end
 
         return true

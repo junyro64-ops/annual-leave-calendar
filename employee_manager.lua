@@ -19,40 +19,76 @@ local validationRules = {
 
 local validationCheck = {
 	"이름이 입력되지 않았습니다.",
-	"유효하지 않은 여차 횟수입니다.",
+	"유효하지 않은 연차 횟수입니다.",
 	"시작연도는 작년부터 가능합니다.",
 	"유요하지 않은 월 입니다."
 }
 
-function EmployeeManager.addEmployee(name, maxLeave, year, month, position)
-	if EmployeeManager.database[name] then return ERROR_CHECK.DATA_EXIST, "등록된 이름입니다" end
+local function validate(name, maxLeave, year, month)
 	local inputData = {name, maxLeave, year, month}
 
 	for i, validation in ipairs(validationRules)do
 		local value = inputData[i]
 		if validation and not validation(value) then 
-			return ERROR_CHECK.INVALID_DATA, validationCheck[i]
+			return false, validationCheck[i]
 		end
 	end
+
+	return true, 0
+end
+
+function EmployeeManager.addEmployee(name, maxLeave, year, month, position)
+	if EmployeeManager.database[name .. " " .. position] then return ERROR_CHECK.DATA_EXIST, "등록된 이름입니다" end
 	
-	EmployeeManager.database[name] = {
+	local validation, check = validate(name, maxLeave, year, month)
+	if not validation then
+		return ERROR_CHECK.INVALID_DATA, check
+	end
+	
+	EmployeeManager.database[name .. " " .. position] = {
 		name = name,
 		maxLeave = maxLeave,
 		leaveStartYear = year,
 		leaveStartMonth = month,
-		postion = position,
+		position = position,
 		usedLeave = 0,
 		leaveDates = {}
 	}
 
-	return ERROR_CHECK.SUCCESS, 0
+	return ERROR_CHECK.SUCCESS, "등록됐습니다."
+end
+
+-- If this function is called, the popup window that called it must be closed.
+function EmployeeManager.editEmployee(_name, maxLeave, year, month, position)
+	
+	local validation, check = validate(_name, maxLeave, year, month)
+	if not validation then
+		return ERROR_CHECK.INVALID_DATA, check
+	end
+
+	local data = EmployeeManager.database[_name]
+	data.maxLeave = maxLeave
+	data.leaveStartMonth = month
+
+	if data.position ~= position then
+		local name = EmployeeManager.database[_name].name
+		EmployeeManager.database[name .. " " .. position] = data
+		EmployeeManager.database[name .. " " .. position].position = position
+		EmployeeManager.database[_name] = nil
+	end
+
+	return ERROR_CHECK.SUCCESS, "정보를 수정했습니다."
 end
 
 function EmployeeManager.deleteEmployee(name)
-	if not EmployeeManager.database[name] then return ERROR_CHECK.NOT_FOUND end
+	if not EmployeeManager.database[name] then 
+		return ERROR_CHECK.NOT_FOUND, "사원이 없습니다."
+	end
 
 	deletedData[name] = EmployeeManager.database[name]
 	EmployeeManager.database[name] = nil
+
+	return ERROR_CHECK.SUCCESS, "사원 정보를 삭제했습니다."
 end
 
 function EmployeeManager.getEmployeeData(name)
@@ -72,7 +108,8 @@ end
 -- this function should run whenver the application loads
 --   so that it can reset the leave record for another year
 --   but keep the leave dates data for future checks
-function EmployeeManager.checkLeaveStart(data, year, month)
+function EmployeeManager.checkLeaveStart(name, year, month)
+	local data = EmployeeManager.database[name]
 	local monthsPassed = ((year - data.leaveStartYear) * 12) + (month - data.leaveStartMonth)
 
 	if monthsPassed >= 12 then
@@ -82,11 +119,13 @@ function EmployeeManager.checkLeaveStart(data, year, month)
 end
 
 function EmployeeManager.cancelLeave(name, year, month, day, amount)
+	local data = EmployeeManager.database[name]
+
 	local time = os.date("*t")
-	if year ~= time.year or month ~= time.month or day <= time.day then
+	local monthsPassed = ((year - time.year) * 12) + (month - time.month)
+	if year < time.year or monthsPassed < 0 or day < time.day then
 		return ERROR_CHECK.INVALID_DATA
 	end
-	local data = EmployeeManager.database[name]
 	data.usedLeave = data.usedLeave - amount
 	data.leaveDates[year][month][day] = nil
 

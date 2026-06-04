@@ -30,9 +30,15 @@ function love.load()
 
 	-- get the current system time
 	UIManager.setCurrentDate()
+	local year = UIManager.getCurrentYear()
+	local month = UIManager.getCurrentMonth()
+
+	for k, v in pairs(EmployeeManager.database) do
+		EmployeeManager.checkLeaveStart(k, year, month)
+	end
 
 	UIManager.loadWeekdays()
-	UIManager.loadCalendar(UIManager.getCurrentYear(), UIManager.getCurrentMonth())
+	UIManager.loadCalendar(year, month)
 	love.window.setMode(SCREEN_SIZE.width, SCREEN_SIZE.height)
 	love.graphics.setBackgroundColor(1,1,1)
 end
