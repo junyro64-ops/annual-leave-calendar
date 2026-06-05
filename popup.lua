@@ -33,9 +33,9 @@ function popup:new(width, height, onClose)
 	return instance
 end
 
-function popup:setPositionToClick(x, y)
+function popup:setPositionToClick(x, y, reverse)
 	self.x = x
-	self.y = y
+	self.y = reverse and (y - self.height) or y
 end
 
 function popup:setScrollWindow(width, height)

@@ -377,10 +377,11 @@ function UIManager.loadCalendar(year, month)
                 function ()
                     -- first, check if it is weekends
                     if isWeekends then return end
-                    
-                    -------------------------------------------------------------------
-                    ---Need to implement a check if the date cell has any employees on leave
-                    -------------------------------------------------------------------
+                    -- next, check if the cell holds any employees using leaves
+                    if dayCell.children and #dayCell.children > 0 then
+                        PopupManager.message_popup("연차를 사용한 사원을 삭제해주세요.")
+                        return
+                    end
 
                     -- then apply right click
                     CalendarManager.calendarDataTree[year][month][dateNumber].isHoliday =

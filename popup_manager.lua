@@ -10,6 +10,7 @@ local ERROR_CHECK = require("constants").ERROR_CHECK
 
 local CELL_TYPE = require("constants").CELL_TYPE
 local Fonts = require("constants").FONTS
+local FONT_SIZE = require("constants").FONT_SIZE
 
 local LEAVE_NAME = require("constants").LEAVE_NAME
 local LEAVE_AMOUNT = require("constants").LEAVE_AMOUNT
@@ -243,13 +244,19 @@ function PopupManager.setCellPopup(cell, width, height, year, month, day, isHoli
             popupCell:addChild(setDate)
 
             if employeeList then
-                local x = 0
+                local x = 20
                 local y = 50
                 local width = 200
-                local height = 25
+                local height = 30
 
                 for i, name in ipairs(employeeList) do
-                    local employee = Button:new(x, y + ((i - 1) * height), width, height, name)
+                    local leaveType = EmployeeManager.database[name].leaveDates[year][month][day]
+                    local leaveName = LEAVE_NAME[leaveType]
+                    local usedLeave = EmployeeManager.database[name].usedLeave
+                    local concat = name .. " (" .. leaveName .. ") " .. usedLeave
+                    local employee = Button:new(x, y + ((i - 1) * height), width, height, concat)
+                    employee:setTextToLeft()
+                    employee.font_size = FONT_SIZE.small_medium
                     employee:setOnRightClick(
                         function ()
                             local amount_key = EmployeeManager.database[name].leaveDates[year][month][day]
@@ -337,15 +344,29 @@ function PopupManager.addEmployee(EmployeeManager, func)
     table.insert(PopupManager.activePopup, newPopup)
 end
 
-function PopupManager.showEmployee(EmployeeManager, calendarChanged)
-    local newPopup = popup:new(800, 600, closePopup)
-    newPopup.is_scrollable = true
-    newPopup:setScrollWindow(700, 500)
+local function employeeLeaveData(EmployeeManager, name)
+    local screen_x, screen_y = love.graphics.getDimensions()
+    local width = screen_x
+    local height = screen_y / 2
+    local newPopup = popup:new(width, height, closePopup)
 
-    local x = 50
-    local y = 50
-    local width = 300
-    local height = 100
+
+
+    table.insert(PopupManager.activePopup, newPopup)
+end
+
+function PopupManager.showEmployee(EmployeeManager, calendarChanged)
+    local newPopup = popup:new(230, 500)
+    newPopup.is_scrollable = true
+    local x, y = love.mouse.getPosition()
+    local reverse = true
+    newPopup:setPositionToClick(x, y, reverse)
+    newPopup:setScrollWindow(220, 450)
+
+    x = 50
+    y = 25
+    local width = 230
+    local height = 50
 
     newPopup.itemStride = height
 
@@ -358,6 +379,7 @@ function PopupManager.showEmployee(EmployeeManager, calendarChanged)
 
     for i, name in ipairs(sortedNames) do
         local employee = Button:new(x, y + (height * (i - 1)), width, height, name)
+        employee:setTextToLeft()
         employee.isStatic = false
         employee:setOnRightClick(
             function ()
@@ -377,6 +399,12 @@ function PopupManager.showEmployee(EmployeeManager, calendarChanged)
                         )
                     end
                 )
+            end
+        )
+        employee:setOnDoubleClick(
+            function ()
+                closePopup()
+                employeeLeaveData(EmployeeManager, name)
             end
         )
         newPopup:addChild(employee)

@@ -99,6 +99,10 @@ function Button:customDraw()
         love.graphics.setFont(self.Fonts.small)
         width = self.Fonts.small:getWidth(self.text)
         height = self.Fonts.small:getHeight()
+    elseif self.font_size == FONT_SIZE.small_medium then 
+        love.graphics.setFont(self.Fonts.small_medium)
+        width = self.Fonts.medium:getWidth(self.text)
+        height = self.Fonts.medium:getHeight()
     elseif self.font_size == FONT_SIZE.medium then 
         love.graphics.setFont(self.Fonts.medium)
         width = self.Fonts.medium:getWidth(self.text)
