@@ -53,7 +53,7 @@ function EmployeeManager.addEmployee(name, maxLeave, year, month, position)
 		leaveStartMonth = month,
 		position = position,
 		usedLeave = 0,
-		leaveDates = {}
+		leaveDates = {} -- saves leave amount used in [year][month]day]
 	}
 
 	return ERROR_CHECK.SUCCESS, "등록됐습니다."

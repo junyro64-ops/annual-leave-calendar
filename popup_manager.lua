@@ -227,9 +227,16 @@ function PopupManager.setCellPopup(cell, width, height, year, month, day, isHoli
 
                 for i, name in ipairs(employeeList) do
                     local employee = Button:new(x, y + ((i - 1) * height), width, height, name)
-                    employee:setOnClick(
+                    employee:setOnRightClick(
                         function ()
-                            -- cancel or edit leave here
+                            rightClickPopup(
+                                function ()
+                                    closePopup(1)
+                                end,
+                                function ()
+                                    closePopup(1)
+                                end
+                            )
                         end
                     )
                     popupCell:addChild(employee)
