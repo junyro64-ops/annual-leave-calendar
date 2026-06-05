@@ -5,6 +5,7 @@ EmployeeManager.leaveDateList = {}
 local deletedData = {}
 
 local ERROR_CHECK = require("constants").ERROR_CHECK
+local LEAVE_AMOUNT = require("constants").LEAVE_AMOUNT
 
 -- Checks if the inputs are valid in addEmployee popup
 -- The order of inputs are name, maxLeave, startYear, startMonth
@@ -53,7 +54,7 @@ function EmployeeManager.addEmployee(name, maxLeave, year, month, position)
 		leaveStartMonth = month,
 		position = position,
 		usedLeave = 0,
-		leaveDates = {} -- saves leave amount used in [year][month]day]
+		leaveDates = {} -- saves leave names in [year][month][day] table
 	}
 
 	return ERROR_CHECK.SUCCESS, "등록됐습니다."
@@ -137,13 +138,15 @@ function EmployeeManager.checkLeaveStart(name, year, month)
 	end
 end
 
-function EmployeeManager.cancelLeave(name, year, month, day, amount)
+function EmployeeManager.cancelLeave(name, year, month, day, amount_key)
 	local data = EmployeeManager.database[name]
 
+	local amount = LEAVE_AMOUNT[amount_key]
+
 	local time = os.date("*t")
-	local monthsPassed = ((year - time.year) * 12) + (month - time.month)
-	if year < time.year or monthsPassed < 0 or day < time.day then
-		return ERROR_CHECK.INVALID_DATA
+	local monthsPassed = ((time.year - year) * 12) + (month - time.month)
+	if year < time.year or monthsPassed >= 12 then
+		return ERROR_CHECK.INVALID_DATA, "날짜가 너무 지났습니다. 취소가 불가능합니다."
 	end
 	data.usedLeave = data.usedLeave - amount
 	data.leaveDates[year][month][day] = nil
@@ -154,10 +157,10 @@ function EmployeeManager.cancelLeave(name, year, month, day, amount)
 		end
 	end
 
-	return ERROR_CHECK.SUCCESS
+	return ERROR_CHECK.SUCCESS, "취소했습니다."
 end
 
-function EmployeeManager.useLeave(name, year, month, day, amount)
+function EmployeeManager.useLeave(name, year, month, day, amount_key) -- amount is LEAVE_NAME constant's key
 	-- local data is just a pointer to the employee's database
 	-- everything updated on 'data' will actually be set to the employee's database
 	local data = EmployeeManager.database[name]
@@ -165,10 +168,12 @@ function EmployeeManager.useLeave(name, year, month, day, amount)
 	if not data then
 		return ERROR_CHECK.FAILED, "데이터가 없습니다."
 	end
+
+	local amount = LEAVE_AMOUNT[amount_key]
 	
 	data.usedLeave = data.usedLeave or 0
 	if (data.usedLeave + amount) > data.maxLeave then
-		return ERROR_CHECK.MAX_REACHED, "연차 횟수를 다 사용했습니다."
+		return ERROR_CHECK.MAX_REACHED, "연차 횟수를 초과했습니다."
 	end
 
 	data.leaveDates = data.leaveDates or {}	
@@ -179,7 +184,7 @@ function EmployeeManager.useLeave(name, year, month, day, amount)
 		return ERROR_CHECK.DATA_EXIST, "이미 연차를 사용한 날짜입니다."
 	end
 	
-	data.leaveDates[year][month][day] = amount
+	data.leaveDates[year][month][day] = amount_key
 	
 	data.usedLeave = data.usedLeave + amount
 
@@ -191,6 +196,35 @@ function EmployeeManager.useLeave(name, year, month, day, amount)
 	table.insert(EmployeeManager.leaveDateList[year][month][day], name)
 
 	return ERROR_CHECK.SUCCESS, "연차 신청이 완료됐습니다."
+end
+
+function EmployeeManager.editLeave(name, year, month, day, original_key, edit_key)
+	local data = EmployeeManager.database[name]
+
+	if not data then
+		return ERROR_CHECK.FAILED, "데이터가 없습니다."
+	end
+
+	if original_key == edit_key then
+		return ERROR_CHECK.INVALID_DATA, "똑같은 연차입니다."
+	end
+
+	local amountOriginal = LEAVE_AMOUNT[original_key]
+	local amountEdit = LEAVE_AMOUNT[edit_key]
+	
+	data.usedLeave = data.usedLeave or 0
+	if (data.usedLeave - amountOriginal + amountEdit) > data.maxLeave then
+		return ERROR_CHECK.MAX_REACHED, "연차 횟수를 초과했습니다."
+	end
+
+	data.leaveDates = data.leaveDates or {}	
+	data.leaveDates[year] = data.leaveDates[year] or {}
+	data.leaveDates[year][month] = data.leaveDates[year][month] or {}	
+	data.leaveDates[year][month][day] = edit_key
+	
+	data.usedLeave = data.usedLeave - amountOriginal + amountEdit
+
+	return ERROR_CHECK.SUCCESS, "연차 수정이 완료됐습니다."
 end
 
 return EmployeeManager

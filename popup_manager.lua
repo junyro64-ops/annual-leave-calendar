@@ -22,7 +22,9 @@ local function closePopup(value)
     if #PopupManager.activePopup > 0 then
         table.remove(PopupManager.activePopup)
         if value then
-            table.remove(PopupManager.activePopup, #PopupManager.activePopup)
+            for i = 1, value, 1 do
+                table.remove(PopupManager.activePopup, #PopupManager.activePopup)
+            end
         end
     end
 end
@@ -154,7 +156,7 @@ local function smallSelectionPopup(start, selections, type, onSelect)
             button:setOnClick(
                 function ()
                     if onSelect then
-                        onSelect(LEAVE_AMOUNT[k])
+                        onSelect(k)
                     end
                 end
             )
@@ -195,7 +197,7 @@ local function openApplyLeavePopup(year, month, day, EmployeeManager, func)
             function ()
                 smallSelectionPopup(1, 1, CELL_TYPE.LEAVE_SELECTION, function (amount)
                     local error, message = EmployeeManager.useLeave(name, year, month, day, amount)
-                    if error == ERROR_CHECK.SUCCESS then closePopup() func() end
+                    if error == ERROR_CHECK.SUCCESS then closePopup(2) func() end
                     PopupManager.message_popup(message)
                 end)
             end
@@ -204,6 +206,27 @@ local function openApplyLeavePopup(year, month, day, EmployeeManager, func)
     end
 
     table.insert(PopupManager.activePopup, applyLeavePopup)
+end
+
+local function editCancelLeave(name, year, month, day, amount_key, EmployeeManager, func)
+    rightClickPopup(
+        function ()
+            -- edit leave function
+            smallSelectionPopup(1, 1, CELL_TYPE.LEAVE_SELECTION,
+                function (amountEdit)
+                    local error, message = EmployeeManager.editLeave(name, year, month, day, amount_key, amountEdit)
+                    if error == ERROR_CHECK.SUCCESS then closePopup(2) func() end
+                    PopupManager.message_popup(message)
+                end
+            )
+        end,
+        function ()
+            -- delete leave function
+            local error, message = EmployeeManager.cancelLeave(name, year, month, day, amount_key)
+            if error == ERROR_CHECK.SUCCESS then closePopup(1) func() end
+            PopupManager.message_popup(message)
+        end
+    )
 end
 
 function PopupManager.setCellPopup(cell, width, height, year, month, day, isHoliday, employeeList, EmployeeManager, func)
@@ -229,14 +252,8 @@ function PopupManager.setCellPopup(cell, width, height, year, month, day, isHoli
                     local employee = Button:new(x, y + ((i - 1) * height), width, height, name)
                     employee:setOnRightClick(
                         function ()
-                            rightClickPopup(
-                                function ()
-                                    closePopup(1)
-                                end,
-                                function ()
-                                    closePopup(1)
-                                end
-                            )
+                            local amount_key = EmployeeManager.database[name].leaveDates[year][month][day]
+                            editCancelLeave(name, year, month, day, amount_key, EmployeeManager, func)
                         end
                     )
                     popupCell:addChild(employee)
