@@ -3,6 +3,8 @@ local UIElement = require("ui_element")
 local Button = setmetatable({}, {__index = UIElement})
 Button.__index = Button
 
+local FONT_SIZE = require("constants").FONT_SIZE
+
 local STATE = {
     IDLE = "IDLE", 
     HOVER = "HOVER", 
@@ -24,9 +26,15 @@ function Button:new(x, y, width, height, text)
 
     instance.drawLine = false
 
+    instance.font_size = FONT_SIZE.medium
+
     setmetatable(instance, Button)
 
     return instance
+end
+
+function Button:setFontSize(size)
+    self.font_size = size
 end
 
 function Button:update(dt, mouse_x, mouse_y)
@@ -83,10 +91,28 @@ function Button:customDraw()
     elseif self.drawLine == true then
         love.graphics.rectangle("line", 0, 0, self.width, self.height)
     end
+    
+    local width
+    local height
 
-    love.graphics.setFont(self.Fonts.medium)
-    local width = self.Fonts.medium:getWidth(self.text)
-    local height = self.Fonts.medium:getHeight()
+    if self.font_size == FONT_SIZE.small then 
+        love.graphics.setFont(self.Fonts.small)
+        width = self.Fonts.small:getWidth(self.text)
+        height = self.Fonts.small:getHeight()
+    elseif self.font_size == FONT_SIZE.medium then 
+        love.graphics.setFont(self.Fonts.medium)
+        width = self.Fonts.medium:getWidth(self.text)
+        height = self.Fonts.medium:getHeight()
+    elseif self.font_size == FONT_SIZE.large then 
+        love.graphics.setFont(self.Fonts.large)
+        width = self.Fonts.large:getWidth(self.text)
+        height = self.Fonts.large:getHeight()
+    else 
+        love.graphics.setFont(self.Fonts.extra_small)
+        width = self.Fonts.extra_small:getWidth(self.text)
+        height = self.Fonts.extra_small:getHeight()
+    end
+
     local x_pos = (self.width - width) / 2
     local y_pos = (self.height - height) / 2
     if self.textToLeft then

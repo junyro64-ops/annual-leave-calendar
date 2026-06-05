@@ -60,6 +60,28 @@ function EmployeeManager.addEmployee(name, maxLeave, year, month, position)
 	return ERROR_CHECK.SUCCESS, "등록됐습니다."
 end
 
+local function deleteChangeLeaveData(employee, name)
+	if employee.leaveDates then
+		for year, months in pairs(employee.leaveDates) do
+			for month, days in pairs(months) do
+				for day, _ in pairs(days) do
+					if EmployeeManager.leaveDateList[year] and
+						EmployeeManager.leaveDateList[year][month] and
+						EmployeeManager.leaveDateList[year][month][day] then
+							local list = EmployeeManager.leaveDateList[year][month][day]
+							for i, name in ipairs(list) do
+								if name == employee.name then
+									table.remove(list, i)
+								end
+							end
+						if name then table.insert(list, name) end
+					end
+				end
+			end
+		end
+	end
+end
+
 -- If this function is called, the popup window that called it must be closed.
 function EmployeeManager.editEmployee(_name, maxLeave, year, month, position)
 	
@@ -67,35 +89,23 @@ function EmployeeManager.editEmployee(_name, maxLeave, year, month, position)
 	if not validation then
 		return ERROR_CHECK.INVALID_DATA, check
 	end
-
+	
 	local data = EmployeeManager.database[_name]
+	local name = EmployeeManager.database[_name].name
+	local newName = name .. " " .. position
+
 	data.maxLeave = maxLeave
 	data.leaveStartMonth = month
-
+	
 	if data.position ~= position then
-		local name = EmployeeManager.database[_name].name
-		EmployeeManager.database[name .. " " .. position] = data
-		EmployeeManager.database[name .. " " .. position].position = position
+		EmployeeManager.database[newName] = data
+		EmployeeManager.database[newName].position = position
 		EmployeeManager.database[_name] = nil
 	end
+	
+	deleteChangeLeaveData(data, newName)
 
 	return ERROR_CHECK.SUCCESS, "정보를 수정했습니다."
-end
-
-local function deleteLeaveData(employee)
-	if employee.leaveDates then
-		for year, months in pairs(employee.leaveDates) do
-			for month, days in pairs(months) do
-				for day, amount in pairs(days) do
-					if EmployeeManager.leaveDateList[year] and
-						EmployeeManager.leaveDateList[year][month] and
-						EmployeeManager.leaveDateList[year][month][day] then
-							EmployeeManager.leaveDateList[year][month][day] = nil
-						end
-				end
-			end
-		end
-	end
 end
 
 function EmployeeManager.deleteEmployee(name)
@@ -103,7 +113,7 @@ function EmployeeManager.deleteEmployee(name)
 		return ERROR_CHECK.NOT_FOUND, "사원이 없습니다."
 	end
 
-	deleteLeaveData(EmployeeManager.database[name])
+	deleteChangeLeaveData(EmployeeManager.database[name])
 
 	deletedData[name] = EmployeeManager.database[name]
 	EmployeeManager.database[name] = nil

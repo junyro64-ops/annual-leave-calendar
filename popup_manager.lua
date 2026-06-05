@@ -42,7 +42,7 @@ local function setInputTitles(popup, x, y, text)
     popup:addChild(inputTitle)
 end
 
-local function editEmployeePopup(name, EmployeeManager)
+local function editEmployeePopup(name, EmployeeManager, func)
     local newPopup = popup:new(800, 600, closePopup)
     local x = 50
     local y = 70
@@ -77,7 +77,7 @@ local function editEmployeePopup(name, EmployeeManager)
             local error_check, validity = 
                 EmployeeManager.editEmployee(name, maxLeave, startYear, startMonth, position)
 
-            if error_check == ERROR_CHECK.SUCCESS then closePopup() end
+            if error_check == ERROR_CHECK.SUCCESS then closePopup() func() end
 
             PopupManager.message_popup(validity)
 
@@ -290,7 +290,7 @@ function PopupManager.setMonthPopup(cell, onSelect)
     )
 end
 
-function PopupManager.addEmployee(EmployeeManager)
+function PopupManager.addEmployee(EmployeeManager, func)
     local newPopup = popup:new(800, 600, closePopup)
     local x = 50
     local y = 70
@@ -329,7 +329,7 @@ function PopupManager.addEmployee(EmployeeManager)
             local error_check, validity = 
                 EmployeeManager.addEmployee(name, maxLeave, startYear, startMonth, position)
 
-            if error_check == ERROR_CHECK.SUCCESS then closePopup() end
+            if error_check == ERROR_CHECK.SUCCESS then closePopup() func() end
             PopupManager.message_popup(validity)
         end
     )
@@ -364,7 +364,7 @@ function PopupManager.showEmployee(EmployeeManager, calendarChanged)
                 rightClickPopup( 
                     function ()
                         closePopup(1)
-                        editEmployeePopup(name, EmployeeManager)
+                        editEmployeePopup(name, EmployeeManager, calendarChanged)
                     end,
                     function ()
                         PopupManager.message_popup("삭제하시겠습니까?",

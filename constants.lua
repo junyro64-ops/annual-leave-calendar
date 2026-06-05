@@ -48,7 +48,15 @@ Constants.CELL_COUNT = 42
 Constants.FONTS = {
 	large = love.graphics.newFont("font/NanumGothic.ttf", 45),
 	medium = love.graphics.newFont("font/NanumGothic.ttf", 26),
-	small = love.graphics.newFont("font/NanumGothic.ttf", 16)
+	small = love.graphics.newFont("font/NanumGothic.ttf", 16),
+    extra_small = love.graphics.newFont("font/NanumGothic.ttf", 12)
+}
+
+Constants.FONT_SIZE = {
+    large = "LARGE",
+    medium = "MEDIUM",
+    small = "SMALL",
+    extra_small = "EXTRA_SMALL"
 }
 
 Constants.FONT_COLOR = {

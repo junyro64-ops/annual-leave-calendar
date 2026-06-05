@@ -18,7 +18,6 @@ local Cell = require("cell")
 local CELL_COUNT = require("constants").CELL_COUNT
 local CELL_TYPE = require("constants").CELL_TYPE
 local CELL_SIZE = require("constants").CELL_SIZE
-local cellDates = {}
 local week = {"SUN", "MON", "TUE", "WED", "THU", "FRI", "SAT"}
 
 local SCREEN_SIZE = require("constants").SCREEN_SIZE
@@ -27,6 +26,9 @@ local MARGIN = require("constants").MARGIN
 local ERROR_CHECK = require("constants").ERROR_CHECK
 
 local Fonts = require("constants").FONTS
+local FONT_SIZE = require("constants").FONT_SIZE
+
+local LEAVE_NAME = require("constants").LEAVE_NAME
 
 local initial_year
 local currentYear
@@ -272,13 +274,19 @@ local function cellEmployeeLeaveList(cell, year, month, day)
 
     local list = EmployeeManager.leaveDateList[year][month][day]
 
-    local x = 5
-    local y = 10
+    local x = 0
+    local y = 25
     local width = 160
-    local height = 10
+    local height = 20
 
     for i, name in ipairs(list) do
-        local employee = Button:new(x, y * i, width, height, name)
+        local leaveType = EmployeeManager.database[name].leaveDates[year][month][day]
+        local leaveName = LEAVE_NAME[leaveType]
+        local usedLeave = EmployeeManager.database[name].usedLeave
+        local concat = name .. " (" .. leaveName .. ") " .. usedLeave
+        local employee = Button:new(x, y + (height * (i - 1)), width, height, concat)
+        employee:setFontSize(FONT_SIZE.extra_small)
+        employee:setTextToLeft()
         cell:addChild(employee)
     end
 
@@ -399,7 +407,7 @@ function UIManager.loadCalendar(year, month)
     table.insert(UIManager.elements, add_employee_button)
     add_employee_button:setOnClick(
         function()
-            PopupManager.addEmployee(EmployeeManager)
+            PopupManager.addEmployee(EmployeeManager, calendarChanged)
         end
     )
 
