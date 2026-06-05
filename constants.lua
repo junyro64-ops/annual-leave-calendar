@@ -61,6 +61,7 @@ Constants.FONT_SIZE = {
 
 Constants.FONT_COLOR = {
     RED = "RED",
+    BLUE = "BLUE",
     WHITE = "WHITE",
     BLACK = "BLACK"
 }

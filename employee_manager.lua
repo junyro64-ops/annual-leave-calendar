@@ -60,7 +60,7 @@ function EmployeeManager.addEmployee(name, maxLeave, year, month, position)
 	return ERROR_CHECK.SUCCESS, "등록됐습니다."
 end
 
-local function deleteChangeLeaveData(employee, name)
+local function deleteChangeLeaveData(employee, oldName, newName)
 	if employee.leaveDates then
 		for year, months in pairs(employee.leaveDates) do
 			for month, days in pairs(months) do
@@ -69,12 +69,12 @@ local function deleteChangeLeaveData(employee, name)
 						EmployeeManager.leaveDateList[year][month] and
 						EmployeeManager.leaveDateList[year][month][day] then
 							local list = EmployeeManager.leaveDateList[year][month][day]
-							for i, name in ipairs(list) do
-								if name == employee.name then
+							for i = #list, 1, -1 do
+								if list[i] == oldName then
 									table.remove(list, i)
 								end
 							end
-						if name then table.insert(list, name) end
+						if newName then table.insert(list, newName) end
 					end
 				end
 			end
@@ -101,9 +101,9 @@ function EmployeeManager.editEmployee(_name, maxLeave, year, month, position)
 		EmployeeManager.database[newName] = data
 		EmployeeManager.database[newName].position = position
 		EmployeeManager.database[_name] = nil
+		deleteChangeLeaveData(data, _name, newName)
 	end
 	
-	deleteChangeLeaveData(data, newName)
 
 	return ERROR_CHECK.SUCCESS, "정보를 수정했습니다."
 end
@@ -113,7 +113,7 @@ function EmployeeManager.deleteEmployee(name)
 		return ERROR_CHECK.NOT_FOUND, "사원이 없습니다."
 	end
 
-	deleteChangeLeaveData(EmployeeManager.database[name])
+	deleteChangeLeaveData(EmployeeManager.database[name], name)
 
 	deletedData[name] = EmployeeManager.database[name]
 	EmployeeManager.database[name] = nil

@@ -58,6 +58,8 @@ end
 function UIElement:setFontColor(color)
     if color == self.FONT_COLOR.RED then
         self.fontColor = {1, 0, 0}
+    elseif color == self.FONT_COLOR.BLUE then
+        self.fontColor = {0, 0, 1}
     elseif color == self.FONT_COLOR.WHITE then
         self.fontColor = {1, 1, 1}
     else
