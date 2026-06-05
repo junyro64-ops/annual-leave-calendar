@@ -36,6 +36,10 @@ local nextMonth
 
 local calendar_changed = false
 
+local function calendarChanged()
+    calendar_changed = true
+end
+
 local function setCurrentYear(year)
     currentYear = year
     initial_year = year
@@ -356,7 +360,11 @@ function UIManager.loadCalendar(year, month)
             local employeeList = cellEmployeeLeaveList(dayCell, year, month, dateNumber)
             local isHoliday = CalendarManager.calendarDataTree[year][month][dateNumber].isHoliday
             local isWeekends = checkWeekends(dateNumber, startingWeekday, daysInMonth)
-            PopupManager.setCellPopup(dayCell, 400, 300, year, month, dateNumber, isHoliday or isWeekends, employeeList)
+            PopupManager.setCellPopup(
+                dayCell, 400, 300, year, month, dateNumber, isHoliday or isWeekends, 
+                employeeList, EmployeeManager, 
+                calendarChanged
+            )
             dayCell:setOnRightClick(
                 function ()
                     -- first, check if it is weekends
@@ -399,7 +407,7 @@ function UIManager.loadCalendar(year, month)
     table.insert(UIManager.elements, show_employee_button)
     show_employee_button:setOnClick(
         function()
-            PopupManager.showEmployee(EmployeeManager)
+            PopupManager.showEmployee(EmployeeManager, calendarChanged)
         end
     )
 end

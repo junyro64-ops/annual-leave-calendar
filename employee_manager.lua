@@ -81,10 +81,28 @@ function EmployeeManager.editEmployee(_name, maxLeave, year, month, position)
 	return ERROR_CHECK.SUCCESS, "정보를 수정했습니다."
 end
 
+local function deleteLeaveData(employee)
+	if employee.leaveDates then
+		for year, months in pairs(employee.leaveDates) do
+			for month, days in pairs(months) do
+				for day, amount in pairs(days) do
+					if EmployeeManager.leaveDateList[year] and
+						EmployeeManager.leaveDateList[year][month] and
+						EmployeeManager.leaveDateList[year][month][day] then
+							EmployeeManager.leaveDateList[year][month][day] = nil
+						end
+				end
+			end
+		end
+	end
+end
+
 function EmployeeManager.deleteEmployee(name)
 	if not EmployeeManager.database[name] then 
 		return ERROR_CHECK.NOT_FOUND, "사원이 없습니다."
 	end
+
+	deleteLeaveData(EmployeeManager.database[name])
 
 	deletedData[name] = EmployeeManager.database[name]
 	EmployeeManager.database[name] = nil
@@ -132,46 +150,47 @@ function EmployeeManager.cancelLeave(name, year, month, day, amount)
 
 	for i, _name in ipairs(EmployeeManager.leaveDateList[year][month][day]) do
 		if name == _name then
-			table.remove(EmployeeManager.leaveDateList[year][month][day][i])
+			table.remove(EmployeeManager.leaveDateList[year][month][day], i)
 		end
 	end
 
 	return ERROR_CHECK.SUCCESS
 end
 
--- The current function below might cause an issue when 
---  an employee registers another leave on the same day.
--- This must be looked over later.
 function EmployeeManager.useLeave(name, year, month, day, amount)
 	-- local data is just a pointer to the employee's database
 	-- everything updated on 'data' will actually be set to the employee's database
 	local data = EmployeeManager.database[name]
 
 	if not data then
-		return ERROR_CHECK.FAILED
-	end
-	if (data.usedLeave + amount) > data.maxLeave then
-		return ERROR_CHECK.MAX_REACHED
+		return ERROR_CHECK.FAILED, "데이터가 없습니다."
 	end
 	
+	data.usedLeave = data.usedLeave or 0
+	if (data.usedLeave + amount) > data.maxLeave then
+		return ERROR_CHECK.MAX_REACHED, "연차 횟수를 다 사용했습니다."
+	end
+
+	data.leaveDates = data.leaveDates or {}	
 	data.leaveDates[year] = data.leaveDates[year] or {}
 	data.leaveDates[year][month] = data.leaveDates[year][month] or {}
 	
 	if data.leaveDates[year][month][day] then
-		return ERROR_CHECK.DATA_EXIST
+		return ERROR_CHECK.DATA_EXIST, "이미 연차를 사용한 날짜입니다."
 	end
 	
 	data.leaveDates[year][month][day] = amount
 	
 	data.usedLeave = data.usedLeave + amount
 
+	EmployeeManager.leaveDateList = EmployeeManager.leaveDateList or {}
 	EmployeeManager.leaveDateList[year] = EmployeeManager.leaveDateList[year] or {}
 	EmployeeManager.leaveDateList[year][month] = EmployeeManager.leaveDateList[year][month] or {}
 	EmployeeManager.leaveDateList[year][month][day] = EmployeeManager.leaveDateList[year][month][day] or {}
 
 	table.insert(EmployeeManager.leaveDateList[year][month][day], name)
 
-	return ERROR_CHECK.SUCCESS
+	return ERROR_CHECK.SUCCESS, "연차 신청이 완료됐습니다."
 end
 
 return EmployeeManager
