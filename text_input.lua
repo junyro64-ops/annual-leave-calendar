@@ -93,7 +93,7 @@ function TextInput:customDraw()
     if self.showCursor then
         love.graphics.setColor(0, 0, 0)
         local textWidth = love.graphics.getFont():getWidth(displayText)
-        love.graphics.line(10 + textWidth + 2, 12, 10 + textWidth + 2, self.height - 12)
+        love.graphics.line(10 + textWidth + 2, 15, 10 + textWidth + 2, self.height - 15)
     end
 end
 

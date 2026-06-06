@@ -29,6 +29,7 @@ local Fonts = require("constants").FONTS
 local FONT_SIZE = require("constants").FONT_SIZE
 
 local LEAVE_NAME = require("constants").LEAVE_NAME
+local LEAVE_AMOUNT = require("constants").LEAVE_AMOUNT
 
 local initial_year
 local currentYear
@@ -266,6 +267,39 @@ function UIManager.loadWeekdays()
 	end
 end
 
+local function calculateUpToDateLeaves(name, _year, _month, _day)
+    local data = EmployeeManager.database[name].leaveDates
+    local usedLeave = 0
+
+    if data[_year - 1] then
+        for month = _month + 1, 12, 1 do
+            if data[_year - 1][month] then
+                for day = 1, 31, 1 do
+                    if data[_year - 1][month][day] then
+                        local leaveName = data[_year - 1][month][day]
+                        usedLeave = usedLeave + LEAVE_AMOUNT[leaveName]
+                    end
+                end
+            end
+        end
+    end
+    if data[_year] then
+        for month = 1, _month, 1 do
+            if data[_year][month] then
+                for day = 1, 31, 1 do
+                    if data[_year][month][day] then
+                        local leaveName = data[_year][month][day]
+                        usedLeave = usedLeave + LEAVE_AMOUNT[leaveName]
+                    end
+                    if month == _month and day == _day then break end
+                end
+            end
+        end
+    end
+
+    return usedLeave
+end
+
 local function cellEmployeeLeaveList(cell, year, month, day)
     if EmployeeManager.leaveDateList == nil then return end
     if EmployeeManager.leaveDateList[year] == nil then return end
@@ -282,7 +316,8 @@ local function cellEmployeeLeaveList(cell, year, month, day)
     for i, name in ipairs(list) do
         local leaveType = EmployeeManager.database[name].leaveDates[year][month][day]
         local leaveName = LEAVE_NAME[leaveType]
-        local usedLeave = EmployeeManager.database[name].usedLeave
+        --local usedLeave = EmployeeManager.database[name].usedLeave
+        local usedLeave = calculateUpToDateLeaves(name, year, month, day)
         local concat = name .. " (" .. leaveName .. ") " .. usedLeave
         local employee = Button:new(x, y + (height * (i - 1)), width, height, concat)
         employee:setFontSize(FONT_SIZE.extra_small)
