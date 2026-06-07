@@ -62,6 +62,7 @@ local function editEmployeePopup(name, EmployeeManager, func)
     confirm:setOnClick(
         function()
             local data = EmployeeManager.database[name]
+            local employmentYear = data.employmentYear
             local _maxLeave = tonumber(maxLeaveInput:returnText())
             local startYear = data.leaveStartYear
             local _startMonth = tonumber(startMonthInput:returnText())
@@ -76,7 +77,7 @@ local function editEmployeePopup(name, EmployeeManager, func)
             end
 
             local error_check, validity = 
-                EmployeeManager.editEmployee(name, maxLeave, startYear, startMonth, position)
+                EmployeeManager.editEmployee(name, employmentYear, maxLeave, startYear, startMonth, position)
 
             if error_check == ERROR_CHECK.SUCCESS then closePopup() func() end
 
@@ -305,26 +306,30 @@ function PopupManager.addEmployee(EmployeeManager, func)
     local x = 50
     local y = 70
     setInputTitles(newPopup, x, y,     "이름")
-    setInputTitles(newPopup, x, y * 2, "총 연차 횟수")
-    setInputTitles(newPopup, x, y * 3, "연차 시작 연도")
-    setInputTitles(newPopup, x, y * 4, "연차 시작 월")
-    setInputTitles(newPopup, x, y * 5, "직책")
+    setInputTitles(newPopup, x, y * 2, "입사 연도")
+    setInputTitles(newPopup, x, y * 3, "총 연차 횟수")
+    setInputTitles(newPopup, x, y * 4, "연차 시작 연도")
+    setInputTitles(newPopup, x, y * 5, "연차 시작 월")
+    setInputTitles(newPopup, x, y * 6, "직책")
     local nameInput = TextInput:new(x + 300, y, 300, y)
     newPopup:addChild(nameInput)
-    local maxLeaveInput = TextInput:new(x + 300, y * 2, 300, y)
+    local employmentYearInput = TextInput:new(x + 300, y * 2, 300, y)
+    newPopup:addChild(employmentYearInput)
+    local maxLeaveInput = TextInput:new(x + 300, y * 3, 300, y)
     newPopup:addChild(maxLeaveInput)
-    local startYearInput = TextInput:new(x + 300, y * 3, 300, y)
+    local startYearInput = TextInput:new(x + 300, y * 4, 300, y)
     newPopup:addChild(startYearInput)
-    local startMonthInput = TextInput:new(x + 300, y * 4, 300, y)
+    local startMonthInput = TextInput:new(x + 300, y * 5, 300, y)
     newPopup:addChild(startMonthInput)
-    local positionInput = TextInput:new(x + 300, y *5, 300, y)
+    local positionInput = TextInput:new(x + 300, y *6, 300, y)
     newPopup:addChild(positionInput)
 
-    local confirm = GraphicsButton.createButton(x + 100, y * 6 + 40, "확인")
+    local confirm = GraphicsButton.createButton(x + 100, y * 7 + 30, "확인")
     newPopup:addChild(confirm)
     confirm:setOnClick(
         function()
             local name = nameInput:returnText()
+            local employmentYear = tonumber(employmentYearInput:returnText())
             local maxLeave = tonumber(maxLeaveInput:returnText())
             local startYear = tonumber(startYearInput:returnText())
             local startMonth = tonumber(startMonthInput:returnText())
@@ -337,7 +342,7 @@ function PopupManager.addEmployee(EmployeeManager, func)
             end
 
             local error_check, validity = 
-                EmployeeManager.addEmployee(name, maxLeave, startYear, startMonth, position)
+                EmployeeManager.addEmployee(name, employmentYear, maxLeave, startYear, startMonth, position)
 
             if error_check == ERROR_CHECK.SUCCESS then closePopup() func() end
             PopupManager.message_popup(validity)
@@ -419,7 +424,7 @@ end
 function PopupManager.message_popup(text, func)
     local width = Fonts.medium:getWidth(text)
     local height = Fonts.medium:getHeight()
-    local popupWidth = width < 500 and 500 or width * 1.25
+    local popupWidth = width < 400 and 500 or width * 1.25
     local newPopup = popup:new(popupWidth, 200, closePopup)
     local x = (popupWidth - width) / 2
     local y = (200 - height) / 2

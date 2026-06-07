@@ -122,7 +122,7 @@ end
 
 function UIManager.keypressed(key)
     if #PopupManager.activePopup > 0 then 
-        if key == "escape" then
+        if key == "escape" or key == "f12" then
             table.remove(PopupManager.activePopup)
             return
         end
@@ -152,12 +152,12 @@ function UIManager.keypressed(key)
             end
             calendar_changed = true
         elseif key == "f12" then
-            if admin_mode then
+            admin_mode = not admin_mode
+            calendar_changed = true
+            if admin_mode == false then
                 PopupManager.message_popup("관리자 모드가 해제됐습니다.")
-                admin_mode = false
             else
                 PopupManager.message_popup("관리자 모드가 활성화됬습니다.")
-                admin_mode = true
             end
         end
     end
@@ -480,6 +480,18 @@ function UIManager.loadCalendar(year, month)
             PopupManager.showEmployee(EmployeeManager, calendarChanged)
         end
     )
+    
+    if admin_mode == true then 
+        local adminText = "관리자 모드"
+        local width = Fonts.large:getWidth(adminText)
+        local height = Fonts.large:getHeight()
+        local screen_x, screen_y = love.graphics.getDimensions()
+        local x = screen_x - width
+        local y = screen_y - height
+        local is_admin_on = Button:new(x, y, width, height, adminText)
+        is_admin_on:setFontSize(FONT_SIZE.large)
+        table.insert(UIManager.elements, is_admin_on)
+    end
 end
 
 function UIManager.draw()

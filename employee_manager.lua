@@ -11,6 +11,7 @@ local LEAVE_AMOUNT = require("constants").LEAVE_AMOUNT
 -- The order of inputs are name, maxLeave, startYear, startMonth
 local validationRules = {
 	function(value) return value ~= nil and string.len(value) > 0 end;
+	function(value) return value ~= nil and (value > 1999) and (value <= os.date("*t").year) end;
 	function(value) return value ~= nil and (value > 0) and (value < 50) end;
 	function(value) 
 		local year = os.date("*t").year
@@ -21,13 +22,14 @@ local validationRules = {
 
 local validationCheck = {
 	"이름이 입력되지 않았습니다.",
+	"유효하지 않은 입사 연도입니다.",
 	"유효하지 않은 연차 횟수입니다.",
 	"시작연도는 작년부터 가능합니다.",
 	"유요하지 않은 월 입니다."
 }
 
-local function validate(name, maxLeave, year, month)
-	local inputData = {name, maxLeave, year, month}
+local function validate(name, employmentYear, maxLeave, year, month)
+	local inputData = {name, employmentYear, maxLeave, year, month}
 
 	for i, validation in ipairs(validationRules)do
 		local value = inputData[i]
@@ -39,16 +41,17 @@ local function validate(name, maxLeave, year, month)
 	return true, 0
 end
 
-function EmployeeManager.addEmployee(name, maxLeave, year, month, position)
+function EmployeeManager.addEmployee(name, employmentYear, maxLeave, year, month, position)
 	if EmployeeManager.database[name .. " " .. position] then return ERROR_CHECK.DATA_EXIST, "등록된 이름입니다" end
 	
-	local validation, check = validate(name, maxLeave, year, month)
+	local validation, check = validate(name, employmentYear, maxLeave, year, month)
 	if not validation then
 		return ERROR_CHECK.INVALID_DATA, check
 	end
 	
 	EmployeeManager.database[name .. " " .. position] = {
 		name = name,
+		employmentYear = employmentYear,
 		maxLeave = maxLeave,
 		leaveStartYear = year,
 		leaveStartMonth = month,
@@ -83,9 +86,9 @@ local function deleteChangeLeaveData(employee, oldName, newName)
 end
 
 -- If this function is called, the popup window that called it must be closed.
-function EmployeeManager.editEmployee(_name, maxLeave, year, month, position)
+function EmployeeManager.editEmployee(_name, employmentYear, maxLeave, year, month, position)
 	
-	local validation, check = validate(_name, maxLeave, year, month)
+	local validation, check = validate(_name, employmentYear, maxLeave, year, month)
 	if not validation then
 		return ERROR_CHECK.INVALID_DATA, check
 	end
@@ -152,7 +155,7 @@ local function checkDate(data, year, month, checkAdminFunc)
 	local checkAdmin = checkAdminFunc()
 
 	if checkAdmin == false and
-		(year < data.leaveStartYear or (data.leaveStartYear == year and month < data.leaveStartMonth)) then
+		(year < data.leaveStartYear or (data.leaveStartYear == year and month < os.date("*t").month)) then
 		return false
 	end
 
@@ -170,7 +173,7 @@ function EmployeeManager.cancelLeave(name, year, month, day, amount_key, checkAd
 
 	local amount = LEAVE_AMOUNT[amount_key]
 
-	local time = os.date("*t")
+	local time = os.date("*t") -- needchecking
 	local monthsPassed = ((time.year - year) * 12) + (month - time.month)
 	if year < time.year or monthsPassed >= 12 then
 		return ERROR_CHECK.INVALID_DATA, "날짜가 너무 지났습니다. 취소가 불가능합니다."
@@ -199,7 +202,7 @@ function EmployeeManager.useLeave(name, year, month, day, amount_key, checkAdmin
 	local check_date = checkDate(data, year, month, checkAdminFunc)
 
 	if check_date == false then
-		return ERROR_CHECK.FAILED, "연차 시작 연월 전 날짜에는 신청이 불가능합니다. 관리자를 문의해주세요."
+		return ERROR_CHECK.FAILED, "신청이 불가능합니다. 관리자를 문의해주세요."
 	end
 
 	local amount = LEAVE_AMOUNT[amount_key]
