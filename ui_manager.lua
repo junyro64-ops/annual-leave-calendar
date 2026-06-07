@@ -287,7 +287,7 @@ local function calculateUpToDateLeaves(name, _year, _month, _day)
     local usedLeave = 0
 
     if leaveStartYear < _year and data[_year - 1] then
-        for month = _month + 1, 12, 1 do
+        for month = leaveStartMonth, 12, 1 do
             if data[_year - 1][month] then
                 for day = 1, 31, 1 do
                     if data[_year - 1][month][day] then

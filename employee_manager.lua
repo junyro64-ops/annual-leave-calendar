@@ -162,6 +162,18 @@ local function checkDate(data, year, month, checkAdminFunc)
 	return true
 end
 
+local function currentCycle(name, year, month)
+	local data = EmployeeManager.database[name]
+
+	if year == data.leaveStartYear and month >= data.leaveStartMonth then
+		return true
+	elseif year == data.leaveStartYear + 1 and month < data.leaveStartMonth then
+		return true
+	else 
+		return false
+	end
+end
+
 function EmployeeManager.cancelLeave(name, year, month, day, amount_key, checkAdminFunc)
 	local data = EmployeeManager.database[name]
 
@@ -171,14 +183,11 @@ function EmployeeManager.cancelLeave(name, year, month, day, amount_key, checkAd
 		return ERROR_CHECK.FAILED, "지난 날짜는 삭제가 불가능합니다. 관리자를 문의해주세요."
 	end
 
-	local amount = LEAVE_AMOUNT[amount_key]
-
-	local time = os.date("*t") -- needchecking
-	local monthsPassed = ((time.year - year) * 12) + (month - time.month)
-	if year < time.year or monthsPassed >= 12 then
-		return ERROR_CHECK.INVALID_DATA, "날짜가 너무 지났습니다. 취소가 불가능합니다."
+	if currentCycle(name, year, month) then
+		local amount = LEAVE_AMOUNT[amount_key]
+		data.usedLeave = data.usedLeave - amount
 	end
-	data.usedLeave = data.usedLeave - amount
+	
 	data.leaveDates[year][month][day] = nil
 
 	for i, _name in ipairs(EmployeeManager.leaveDateList[year][month][day]) do
@@ -205,13 +214,6 @@ function EmployeeManager.useLeave(name, year, month, day, amount_key, checkAdmin
 		return ERROR_CHECK.FAILED, "신청이 불가능합니다. 관리자를 문의해주세요."
 	end
 
-	local amount = LEAVE_AMOUNT[amount_key]
-	
-	data.usedLeave = data.usedLeave or 0
-	if (data.usedLeave + amount) > data.maxLeave then
-		return ERROR_CHECK.MAX_REACHED, "연차 횟수를 초과했습니다."
-	end
-
 	data.leaveDates = data.leaveDates or {}	
 	data.leaveDates[year] = data.leaveDates[year] or {}
 	data.leaveDates[year][month] = data.leaveDates[year][month] or {}
@@ -221,8 +223,17 @@ function EmployeeManager.useLeave(name, year, month, day, amount_key, checkAdmin
 	end
 	
 	data.leaveDates[year][month][day] = amount_key
-	
-	data.usedLeave = data.usedLeave + amount
+
+	if currentCycle(name, year, month) then
+		local amount = LEAVE_AMOUNT[amount_key]
+		
+		data.usedLeave = data.usedLeave or 0
+		if (data.usedLeave + amount) > data.maxLeave then
+			return ERROR_CHECK.MAX_REACHED, "연차 횟수를 초과했습니다."
+		end
+		
+		data.usedLeave = data.usedLeave + amount
+	end
 
 	EmployeeManager.leaveDateList = EmployeeManager.leaveDateList or {}
 	EmployeeManager.leaveDateList[year] = EmployeeManager.leaveDateList[year] or {}
@@ -251,20 +262,22 @@ function EmployeeManager.editLeave(name, year, month, day, original_key, edit_ke
 		return ERROR_CHECK.INVALID_DATA, "똑같은 연차입니다."
 	end
 
-	local amountOriginal = LEAVE_AMOUNT[original_key]
-	local amountEdit = LEAVE_AMOUNT[edit_key]
-	
-	data.usedLeave = data.usedLeave or 0
-	if (data.usedLeave - amountOriginal + amountEdit) > data.maxLeave then
-		return ERROR_CHECK.MAX_REACHED, "연차 횟수를 초과했습니다."
-	end
-
 	data.leaveDates = data.leaveDates or {}	
 	data.leaveDates[year] = data.leaveDates[year] or {}
 	data.leaveDates[year][month] = data.leaveDates[year][month] or {}	
 	data.leaveDates[year][month][day] = edit_key
-	
-	data.usedLeave = data.usedLeave - amountOriginal + amountEdit
+
+	if currentCycle(name, year, month) then
+		local amountOriginal = LEAVE_AMOUNT[original_key]
+		local amountEdit = LEAVE_AMOUNT[edit_key]
+		
+		data.usedLeave = data.usedLeave or 0
+		if (data.usedLeave - amountOriginal + amountEdit) > data.maxLeave then
+			return ERROR_CHECK.MAX_REACHED, "연차 횟수를 초과했습니다."
+		end
+		
+		data.usedLeave = data.usedLeave - amountOriginal + amountEdit
+	end
 
 	return ERROR_CHECK.SUCCESS, "연차 수정이 완료됐습니다."
 end
