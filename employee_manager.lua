@@ -148,8 +148,25 @@ function EmployeeManager.checkLeaveStart(name, year, month)
 	end
 end
 
-function EmployeeManager.cancelLeave(name, year, month, day, amount_key)
+local function checkDate(data, year, month, checkAdminFunc)
+	local checkAdmin = checkAdminFunc()
+
+	if checkAdmin == false and
+		(year < data.leaveStartYear or (data.leaveStartYear == year and month < data.leaveStartMonth)) then
+		return false
+	end
+
+	return true
+end
+
+function EmployeeManager.cancelLeave(name, year, month, day, amount_key, checkAdminFunc)
 	local data = EmployeeManager.database[name]
+
+	local check_date = checkDate(data, year, month, checkAdminFunc)
+
+	if check_date == false then
+		return ERROR_CHECK.FAILED, "지난 날짜는 삭제가 불가능합니다. 관리자를 문의해주세요."
+	end
 
 	local amount = LEAVE_AMOUNT[amount_key]
 
@@ -170,13 +187,19 @@ function EmployeeManager.cancelLeave(name, year, month, day, amount_key)
 	return ERROR_CHECK.SUCCESS, "취소했습니다."
 end
 
-function EmployeeManager.useLeave(name, year, month, day, amount_key) -- amount is LEAVE_NAME constant's key
+function EmployeeManager.useLeave(name, year, month, day, amount_key, checkAdminFunc) -- amount is LEAVE_NAME constant's key
 	-- local data is just a pointer to the employee's database
 	-- everything updated on 'data' will actually be set to the employee's database
 	local data = EmployeeManager.database[name]
 
 	if not data then
 		return ERROR_CHECK.FAILED, "데이터가 없습니다."
+	end
+
+	local check_date = checkDate(data, year, month, checkAdminFunc)
+
+	if check_date == false then
+		return ERROR_CHECK.FAILED, "연차 시작 연월 전 날짜에는 신청이 불가능합니다. 관리자를 문의해주세요."
 	end
 
 	local amount = LEAVE_AMOUNT[amount_key]
@@ -208,11 +231,17 @@ function EmployeeManager.useLeave(name, year, month, day, amount_key) -- amount 
 	return ERROR_CHECK.SUCCESS, "연차 신청이 완료됐습니다."
 end
 
-function EmployeeManager.editLeave(name, year, month, day, original_key, edit_key)
+function EmployeeManager.editLeave(name, year, month, day, original_key, edit_key, checkAdminFunc)
 	local data = EmployeeManager.database[name]
 
 	if not data then
 		return ERROR_CHECK.FAILED, "데이터가 없습니다."
+	end
+
+	local check_date = checkDate(data, year, month, checkAdminFunc)
+
+	if check_date == false then
+		return ERROR_CHECK.FAILED, "지난 날짜는 수정이 불가능합니다. 관리자를 문의해주세요."
 	end
 
 	if original_key == edit_key then

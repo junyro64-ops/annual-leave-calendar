@@ -38,6 +38,11 @@ local previousMonth
 local nextMonth
 
 local calendar_changed = false
+local admin_mode = false
+
+local function checkAdmin()
+    return admin_mode
+end
 
 local function calendarChanged()
     calendar_changed = true
@@ -146,6 +151,14 @@ function UIManager.keypressed(key)
                 currentMonth = currentMonth + 1
             end
             calendar_changed = true
+        elseif key == "f12" then
+            if admin_mode then
+                PopupManager.message_popup("관리자 모드가 해제됐습니다.")
+                admin_mode = false
+            else
+                PopupManager.message_popup("관리자 모드가 활성화됬습니다.")
+                admin_mode = true
+            end
         end
     end
 
@@ -230,7 +243,6 @@ local function deleteCalendar()
     UIManager.elements = {}
     UIManager.headers = {}
     UIManager.currentCalendar = {}
-    cellDates = {}
 end
 
 local function calculatePos(type, index)
@@ -268,10 +280,13 @@ function UIManager.loadWeekdays()
 end
 
 local function calculateUpToDateLeaves(name, _year, _month, _day)
-    local data = EmployeeManager.database[name].leaveDates
+    local employee = EmployeeManager.database[name]
+    local data = employee.leaveDates
+    local leaveStartYear = employee.leaveStartYear
+    local leaveStartMonth = employee.leaveStartMonth
     local usedLeave = 0
 
-    if data[_year - 1] then
+    if leaveStartYear < _year and data[_year - 1] then
         for month = _month + 1, 12, 1 do
             if data[_year - 1][month] then
                 for day = 1, 31, 1 do
@@ -282,9 +297,21 @@ local function calculateUpToDateLeaves(name, _year, _month, _day)
                 end
             end
         end
-    end
-    if data[_year] then
-        for month = 1, _month, 1 do
+        if data[_year] then
+            for month = 1, _month, 1 do
+                if data[_year][month] then
+                    for day = 1, 31, 1 do
+                        if data[_year][month][day] then
+                            local leaveName = data[_year][month][day]
+                            usedLeave = usedLeave + LEAVE_AMOUNT[leaveName]
+                        end
+                        if month == _month and day == _day then break end
+                    end
+                end
+            end
+        end
+    elseif data[_year] then
+        for month = leaveStartMonth, _month, 1 do
             if data[_year][month] then
                 for day = 1, 31, 1 do
                     if data[_year][month][day] then
@@ -316,7 +343,6 @@ local function cellEmployeeLeaveList(cell, year, month, day)
     for i, name in ipairs(list) do
         local leaveType = EmployeeManager.database[name].leaveDates[year][month][day]
         local leaveName = LEAVE_NAME[leaveType]
-        --local usedLeave = EmployeeManager.database[name].usedLeave
         local usedLeave = calculateUpToDateLeaves(name, year, month, day)
         local concat = name .. " (" .. leaveName .. ") " .. usedLeave
         local employee = Button:new(x, y + (height * (i - 1)), width, height, concat)
@@ -406,7 +432,7 @@ function UIManager.loadCalendar(year, month)
             PopupManager.setCellPopup(
                 dayCell, 400, 300, year, month, dateNumber, isHoliday or isWeekends, 
                 employeeList, EmployeeManager, 
-                calendarChanged
+                calendarChanged, checkAdmin, calculateUpToDateLeaves
             )
             dayCell:setOnRightClick(
                 function ()
