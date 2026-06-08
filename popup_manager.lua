@@ -253,18 +253,31 @@ function PopupManager.setCellPopup(cell, width, height, year, month, day, isHoli
                 local width = 200
                 local height = 30
 
-                for i, name in ipairs(employeeList) do
-                    local leaveType = EmployeeManager.database[name].leaveDates[year][month][day]
+                for i = #employeeList, 1, -1 do
+                    local listItem = employeeList[i]
+                    local employeeName = listItem.name
+                    local leaveType = listItem.key
+
+                    local index = 1
+                    local leaveLimit = EmployeeManager.database[employeeName].leaveDates[year][month][day]
+                    if leaveLimit then
+                        for j, key in ipairs(leaveLimit) do
+                            if key == leaveType then
+                                index = j
+                                break
+                            end
+                        end
+                    end
+
                     local leaveName = LEAVE_NAME[leaveType]
-                    local usedLeave = calculateUpToDateLeaves(name, year, month, day)
-                    local concat = name .. " (" .. leaveName .. ") " .. usedLeave
+                    local usedLeave = calculateUpToDateLeaves(employeeName, year, month, day)
+                    local concat = employeeName .. " (" .. leaveName .. ") " .. usedLeave
                     local employee = Button:new(x, y + ((i - 1) * height), width, height, concat)
                     employee:setTextToLeft()
                     employee.font_size = FONT_SIZE.small_medium
                     employee:setOnRightClick(
                         function ()
-                            local amount_key = EmployeeManager.database[name].leaveDates[year][month][day]
-                            editCancelLeave(name, year, month, day, amount_key, EmployeeManager, func, checkAdmin)
+                            editCancelLeave(employeeName, year, month, day, leaveType, EmployeeManager, func, checkAdmin)
                         end
                     )
                     popupCell:addChild(employee)

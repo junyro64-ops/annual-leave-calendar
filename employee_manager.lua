@@ -73,11 +73,13 @@ local function deleteChangeLeaveData(employee, oldName, newName)
 						EmployeeManager.leaveDateList[year][month][day] then
 							local list = EmployeeManager.leaveDateList[year][month][day]
 							for i = #list, 1, -1 do
-								if list[i] == oldName then
+								local listItem = list[i]
+								if listItem.name == oldName then
+									local currentKey = listItem.key
 									table.remove(list, i)
+									if newName then table.insert(list, {name = newName, key = currentKey}) end
 								end
 							end
-						if newName then table.insert(list, newName) end
 					end
 				end
 			end
@@ -190,11 +192,24 @@ function EmployeeManager.cancelLeave(name, year, month, day, amount_key, checkAd
 		data.usedLeave = data.usedLeave - amount
 	end
 	
-	data.leaveDates[year][month][day] = nil
+	local leaveDates = data.leaveDates[year][month][day]
+	if leaveDates then
+		for i = #leaveDates, 1, -1 do
+			if leaveDates[i] == amount_key then
+				table.remove(leaveDates, i)
+				break
+			end
+		end
+		if #leaveDates == 0 then data.leaveDates[year][month][day] = nil end
+	end
 
 	local list = EmployeeManager.leaveDateList[year][month][day]
 	for i = #list, 1, -1 do
-		if name == list[i] then table.remove(list, i) end
+		local listItem = list[i]
+		if listItem.name == name and listItem.key == amount_key then
+			table.remove(list, i)
+			break
+		end
 	end
 
 	return ERROR_CHECK.SUCCESS, "취소했습니다."
@@ -218,12 +233,15 @@ function EmployeeManager.useLeave(name, year, month, day, amount_key, checkAdmin
 	data.leaveDates = data.leaveDates or {}	
 	data.leaveDates[year] = data.leaveDates[year] or {}
 	data.leaveDates[year][month] = data.leaveDates[year][month] or {}
+	data.leaveDates[year][month][day] = data.leaveDates[year][month][day] or {}
 	
-	if data.leaveDates[year][month][day] then
-		return ERROR_CHECK.DATA_EXIST, "이미 연차를 사용한 날짜입니다."
+	for _, key in ipairs(data.leaveDates[year][month][day]) do
+		if key == amount_key then
+			return ERROR_CHECK.DATA_EXIST, "이미 사용한 연차입니다."
+		end
 	end
 	
-	data.leaveDates[year][month][day] = amount_key
+	table.insert(data.leaveDates[year][month][day], amount_key)
 
 	if currentCycle(name, year, month) then
 		local amount = LEAVE_AMOUNT[amount_key]
@@ -241,7 +259,7 @@ function EmployeeManager.useLeave(name, year, month, day, amount_key, checkAdmin
 	EmployeeManager.leaveDateList[year][month] = EmployeeManager.leaveDateList[year][month] or {}
 	EmployeeManager.leaveDateList[year][month][day] = EmployeeManager.leaveDateList[year][month][day] or {}
 
-	table.insert(EmployeeManager.leaveDateList[year][month][day], name)
+	table.insert(EmployeeManager.leaveDateList[year][month][day], {name = name, key = amount_key})
 
 	return ERROR_CHECK.SUCCESS, "연차 신청이 완료됐습니다."
 end
@@ -265,8 +283,33 @@ function EmployeeManager.editLeave(name, year, month, day, original_key, edit_ke
 
 	data.leaveDates = data.leaveDates or {}	
 	data.leaveDates[year] = data.leaveDates[year] or {}
-	data.leaveDates[year][month] = data.leaveDates[year][month] or {}	
-	data.leaveDates[year][month][day] = edit_key
+	data.leaveDates[year][month] = data.leaveDates[year][month] or {}
+	data.leaveDates[year][month][day] = data.leaveDates[year][month] or {}
+
+	local leaveDates = data.leaveDates[year][month][day]
+	if leaveDates then
+		for i, key in ipairs(leaveDates) do
+			if key == original_key then
+				leaveDates[i] = edit_key
+				break
+			end
+		end
+	end
+
+	EmployeeManager.leaveDateList = EmployeeManager.leaveDateList or {}
+	EmployeeManager.leaveDateList[year] = EmployeeManager.leaveDateList[year] or {}
+	EmployeeManager.leaveDateList[year][month] = EmployeeManager.leaveDateList[year][month] or {}
+	EmployeeManager.leaveDateList[year][month][day] = EmployeeManager.leaveDateList[year][month][day] or {}
+
+	local list = EmployeeManager.leaveDateList[year][month][day]
+	if list then
+		for _, v in ipairs(list) do
+			if v.name == name and v.key == original_key then
+				v.key = edit_key
+				break
+			end
+		end
+	end
 
 	if currentCycle(name, year, month) then
 		local amountOriginal = LEAVE_AMOUNT[original_key]

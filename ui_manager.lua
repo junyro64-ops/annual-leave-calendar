@@ -296,12 +296,23 @@ function UIManager.loadWeekdays()
 	end
 end
 
-local function calculateUpToDateLeaves(name, _year, _month, _day)
+local function calculateUpToDateLeaves(name, _year, _month, _day, index)
     local employee = EmployeeManager.database[name]
     local data = employee.leaveDates
     local leaveStartYear = employee.leaveStartYear
     local leaveStartMonth = employee.leaveStartMonth
     local usedLeave = 0
+
+    local function addLeaves(leaveData)
+        local amount = 0
+        if leaveData then
+            for i, leaveName in ipairs(leaveData) do
+                amount = amount + LEAVE_AMOUNT[leaveName]
+                if index and i == index then break end
+            end
+        end
+        return amount
+    end
 
     if leaveStartYear < _year then 
         if data[_year - 1] then
@@ -309,8 +320,7 @@ local function calculateUpToDateLeaves(name, _year, _month, _day)
                 if data[_year - 1][month] then
                     for day = 1, 31, 1 do
                         if data[_year - 1][month][day] then
-                            local leaveName = data[_year - 1][month][day]
-                            usedLeave = usedLeave + LEAVE_AMOUNT[leaveName]
+                            usedLeave = usedLeave + addLeaves(data[_year - 1][month][day])
                         end
                     end
                 end
@@ -321,8 +331,7 @@ local function calculateUpToDateLeaves(name, _year, _month, _day)
                 if data[_year][month] then
                     for day = 1, 31, 1 do
                         if data[_year][month][day] then
-                            local leaveName = data[_year][month][day]
-                            usedLeave = usedLeave + LEAVE_AMOUNT[leaveName]
+                            usedLeave = usedLeave + addLeaves(data[_year][month][day])
                         end
                         if month == _month and day == _day then break end
                     end
@@ -334,8 +343,7 @@ local function calculateUpToDateLeaves(name, _year, _month, _day)
             if data[_year][month] then
                 for day = 1, 31, 1 do
                     if data[_year][month][day] then
-                        local leaveName = data[_year][month][day]
-                        usedLeave = usedLeave + LEAVE_AMOUNT[leaveName]
+                        usedLeave = usedLeave + addLeaves(data[_year][month][day])
                     end
                     if month == _month and day == _day then break end
                 end
@@ -359,11 +367,25 @@ local function cellEmployeeLeaveList(cell, year, month, day)
     local width = 160
     local height = 20
 
-    for i, name in ipairs(list) do
-        local leaveType = EmployeeManager.database[name].leaveDates[year][month][day]
+    for i = 1, #list, 1 do
+        local listItem = list[i]
+        local employeeName = listItem.name
+        local leaveType = listItem.key
+
+        local index = 1
+        local leaveLimit = EmployeeManager.database[employeeName].leaveDates[year][month][day]
+        if leaveLimit then
+            for j, key in ipairs(leaveLimit) do
+                if key == leaveType then
+                    index = j
+                    break
+                end
+            end
+        end
+        
         local leaveName = LEAVE_NAME[leaveType]
-        local usedLeave = calculateUpToDateLeaves(name, year, month, day)
-        local concat = name .. " (" .. leaveName .. ") " .. usedLeave
+        local usedLeave = calculateUpToDateLeaves(employeeName, year, month, day, index)
+        local concat = employeeName .. " (" .. leaveName .. ") " .. usedLeave
         local employee = Button:new(x, y + (height * (i - 1)), width, height, concat)
         employee:setFontSize(FONT_SIZE.extra_small)
         employee:setTextToLeft()
