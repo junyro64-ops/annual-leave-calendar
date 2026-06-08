@@ -179,7 +179,7 @@ local function openApplyLeavePopup(year, month, day, EmployeeManager, func, chec
     applyLeavePopup:setScrollWindow(600, 400)
 
     local x = 50
-    local y = 50
+    local y = 0
     local width = 300
     local height = 50
 

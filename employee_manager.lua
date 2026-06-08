@@ -151,13 +151,15 @@ function EmployeeManager.checkLeaveStart(name, year, month)
 	end
 end
 
-local function checkDate(data, year, month, checkAdminFunc)
+local function checkDate(year, month, checkAdminFunc)
 	local checkAdmin = checkAdminFunc()
+	if checkAdmin == true then return true end
 
-	if checkAdmin == false and
-		(year < data.leaveStartYear or (data.leaveStartYear == year and month < os.date("*t").month)) then
-		return false
-	end
+	local time = os.date("*t")
+
+	if year < time.year then return false end
+
+	if year == time.year and month < time.month then return false end
 
 	return true
 end
@@ -177,7 +179,7 @@ end
 function EmployeeManager.cancelLeave(name, year, month, day, amount_key, checkAdminFunc)
 	local data = EmployeeManager.database[name]
 
-	local check_date = checkDate(data, year, month, checkAdminFunc)
+	local check_date = checkDate(year, month, checkAdminFunc)
 
 	if check_date == false then
 		return ERROR_CHECK.FAILED, "지난 날짜는 삭제가 불가능합니다. 관리자를 문의해주세요."
@@ -190,10 +192,9 @@ function EmployeeManager.cancelLeave(name, year, month, day, amount_key, checkAd
 	
 	data.leaveDates[year][month][day] = nil
 
-	for i, _name in ipairs(EmployeeManager.leaveDateList[year][month][day]) do
-		if name == _name then
-			table.remove(EmployeeManager.leaveDateList[year][month][day], i)
-		end
+	local list = EmployeeManager.leaveDateList[year][month][day]
+	for i = #list, 1, -1 do
+		if name == list[i] then table.remove(list, i) end
 	end
 
 	return ERROR_CHECK.SUCCESS, "취소했습니다."
@@ -208,7 +209,7 @@ function EmployeeManager.useLeave(name, year, month, day, amount_key, checkAdmin
 		return ERROR_CHECK.FAILED, "데이터가 없습니다."
 	end
 
-	local check_date = checkDate(data, year, month, checkAdminFunc)
+	local check_date = checkDate(year, month, checkAdminFunc)
 
 	if check_date == false then
 		return ERROR_CHECK.FAILED, "신청이 불가능합니다. 관리자를 문의해주세요."
@@ -252,7 +253,7 @@ function EmployeeManager.editLeave(name, year, month, day, original_key, edit_ke
 		return ERROR_CHECK.FAILED, "데이터가 없습니다."
 	end
 
-	local check_date = checkDate(data, year, month, checkAdminFunc)
+	local check_date = checkDate(year, month, checkAdminFunc)
 
 	if check_date == false then
 		return ERROR_CHECK.FAILED, "지난 날짜는 수정이 불가능합니다. 관리자를 문의해주세요."

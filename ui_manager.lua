@@ -286,13 +286,15 @@ local function calculateUpToDateLeaves(name, _year, _month, _day)
     local leaveStartMonth = employee.leaveStartMonth
     local usedLeave = 0
 
-    if leaveStartYear < _year and data[_year - 1] then
-        for month = leaveStartMonth, 12, 1 do
-            if data[_year - 1][month] then
-                for day = 1, 31, 1 do
-                    if data[_year - 1][month][day] then
-                        local leaveName = data[_year - 1][month][day]
-                        usedLeave = usedLeave + LEAVE_AMOUNT[leaveName]
+    if leaveStartYear < _year then 
+        if data[_year - 1] then
+            for month = leaveStartMonth, 12, 1 do
+                if data[_year - 1][month] then
+                    for day = 1, 31, 1 do
+                        if data[_year - 1][month][day] then
+                            local leaveName = data[_year - 1][month][day]
+                            usedLeave = usedLeave + LEAVE_AMOUNT[leaveName]
+                        end
                     end
                 end
             end
