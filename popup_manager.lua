@@ -270,7 +270,7 @@ function PopupManager.setCellPopup(cell, width, height, year, month, day, isHoli
                     end
 
                     local leaveName = LEAVE_NAME[leaveType]
-                    local usedLeave = calculateUpToDateLeaves(employeeName, year, month, day)
+                    local usedLeave = calculateUpToDateLeaves(employeeName, year, month, day, index)
                     local concat = employeeName .. " (" .. leaveName .. ") " .. usedLeave
                     local employee = Button:new(x, y + ((i - 1) * height), width, height, concat)
                     employee:setTextToLeft()

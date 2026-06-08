@@ -284,10 +284,15 @@ function EmployeeManager.editLeave(name, year, month, day, original_key, edit_ke
 	data.leaveDates = data.leaveDates or {}	
 	data.leaveDates[year] = data.leaveDates[year] or {}
 	data.leaveDates[year][month] = data.leaveDates[year][month] or {}
-	data.leaveDates[year][month][day] = data.leaveDates[year][month] or {}
+	data.leaveDates[year][month][day] = data.leaveDates[year][month][day] or {}
 
 	local leaveDates = data.leaveDates[year][month][day]
 	if leaveDates then
+		for i, key in ipairs(leaveDates) do
+			if key == edit_key then
+				return ERROR_CHECK.DATA_EXIST, "해당 날짜에 같은 연차가 존재합니다."
+			end
+		end
 		for i, key in ipairs(leaveDates) do
 			if key == original_key then
 				leaveDates[i] = edit_key
