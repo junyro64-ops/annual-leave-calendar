@@ -131,7 +131,7 @@ function UIManager.keypressed(key)
 
         return 
     else
-        if key == "left" then
+        if key == "up" then
             if currentMonth == 1 then
                 currentMonth = 12
                 currentYear = currentYear - 1
@@ -141,7 +141,7 @@ function UIManager.keypressed(key)
                 currentMonth = currentMonth - 1
             end
             calendar_changed = true
-        elseif key == "right" then
+        elseif key == "down" then
             if currentMonth == 12 then
                 currentMonth = 1
                 currentYear = currentYear + 1
@@ -184,7 +184,24 @@ local function scrolling(popup, x, y)
 end
 
 function UIManager.wheelmoved(x, y)
-    if #PopupManager.activePopup == 0 then return end
+    if #PopupManager.activePopup == 0 then
+        y = (y > 0 and 1) or (y < 0 and -1) or 0
+        if currentMonth == 1 and y > 0 then
+            currentMonth = 12
+            currentYear = currentYear - 1
+            CalendarManager.createYearTree(currentYear - 1)
+            CalendarManager.destroyYearTree(currentYear + 2)
+        elseif currentMonth == 12 and y < 0 then
+            currentMonth = 1
+            currentYear = currentYear + 1
+            CalendarManager.createYearTree(currentYear + 1)
+            CalendarManager.destroyYearTree(currentYear - 2)
+        else
+            currentMonth = currentMonth + (-y)
+        end
+        calendar_changed = true
+        return
+    end
     local popup = PopupManager.activePopup[#PopupManager.activePopup]
     if popup.is_scrollable then
         scrolling(popup, x, y)

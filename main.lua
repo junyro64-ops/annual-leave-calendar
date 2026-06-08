@@ -29,6 +29,8 @@ local function saveData()
 end
 
 function love.load()
+	love.keyboard.setKeyRepeat(true)
+	
 	loadData()
 
 	-- get the current system time
