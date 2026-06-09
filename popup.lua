@@ -12,7 +12,6 @@ function popup:new(width, height, onClose)
 	local instance = UIElement:new(x, y, width, height)
 	setmetatable(instance, popup)
 
-	instance.children = {}
 	instance.is_scrollable = false
 	instance.scroll_width = 0
 	instance.scroll_height = 0
@@ -77,10 +76,6 @@ function popup:keypressed(key)
 	end
 end
 
-function popup:addChild(element)
-	table.insert(self.children, element)
-end
-
 function popup:customDraw()
 	love.graphics.setColor(1, 1, 1)
 	love.graphics.rectangle("fill", 0, 0, self.width, self.height, 10, 10)
@@ -129,7 +124,7 @@ end
 local function activateClick(element, x, y, click, presses)
 	if element:isClicked(x, y) then
 		element.isActive = true
-		if presses > 1 and element.onDoubleClick then
+		if presses > 1 and click == 1 and element.onDoubleClick then
 			element:onDoubleClick()
 		end
 		if click == 1 and element.onClick then

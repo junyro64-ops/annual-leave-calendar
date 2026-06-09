@@ -465,7 +465,7 @@ local function employeeLeaveData(EmployeeManager, name_pos, calculateUpToDateLea
     local carry_button = Button:new(0, labelY, cellWidth, labelHeight)
     carry_button:setOnDoubleClick(
         function ()
-            local carryPopup = popup:new(cellHeight, cellHeight)
+            local carryPopup = popup:new(cellWidth, cellHeight)
             local x, y = love.mouse.getPosition()
             carryPopup:setPositionToClick(x, y)
             -- local carryInput = TextInput:new(0, labelY, cellWidth, cellHeight)

@@ -10,8 +10,6 @@ function Cell:new(x, y, width, height, type, value)
     instance.value = value
 
     instance.line = true
-    
-    instance.children = {}
 
     setmetatable(instance, Cell)
 
@@ -20,10 +18,6 @@ end
 
 function Cell:disableLine()
     self.line = false
-end
-
-function Cell:addChild(element)
-    table.insert(self.children, element)
 end
 
 function Cell:customDraw()

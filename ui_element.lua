@@ -8,7 +8,8 @@ function UIElement:new(x, y, width, height)
         x = x or 0,
         y = y or 0,
         width = width or 0,
-        height = height or 0
+        height = height or 0,
+        children = {}
     }
     setmetatable(instance, self)
 
@@ -22,6 +23,10 @@ function UIElement:new(x, y, width, height)
     instance.isStatic = true
 
     return instance
+end
+
+function UIElement:addChild(element)
+    table.insert(self.children, element)
 end
 
 function UIElement:setOnClick(callback)
@@ -61,6 +66,27 @@ function UIElement:onDoubleClick()
     if self.doubleClick then
         self.doubleClick()
     end
+end
+
+function UIElement:mousePressed(x, y, mouseButton, presses)
+	local x = x - self.x
+	local y = y - self.y
+	for _, element in ipairs(self.children) do
+        if element:isClicked(x, y) then
+            element.isActive = true
+            if presses > 1 and mouseButton == 1 and element.onDoubleClick then
+                element:onDoubleClick()
+            end
+            if mouseButton == 1 and element.onClick then
+                element:onClick()
+            elseif mouseButton == 2 and element.onRightClick then
+                element:onRightClick()
+            end
+            return true
+        end
+	end
+
+	return false
 end
 
 function UIElement:setFontColor(color)
