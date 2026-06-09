@@ -514,11 +514,19 @@ function UIManager.loadCalendar(year, month)
         end
     )
 
-    local show_employee_button = GraphicsButton.createButton(x + 200 +50, y, "사원목록")
+    local show_employee_button = GraphicsButton.createButton(x + 200 + 50, y, "사원목록")
     table.insert(UIManager.elements, show_employee_button)
     show_employee_button:setOnClick(
         function()
             PopupManager.showEmployee(EmployeeManager, calendarChanged)
+        end
+    )
+
+    local show_leave_conditions_button = GraphicsButton.createButton(x + 400 + 100, y, "연차현황")
+    table.insert(UIManager.elements, show_leave_conditions_button)
+    show_leave_conditions_button:setOnClick(
+        function ()
+            
         end
     )
     

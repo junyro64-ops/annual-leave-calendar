@@ -13,7 +13,7 @@ local Fonts = require("constants").FONTS
 local FONT_SIZE = require("constants").FONT_SIZE
 
 local LEAVE_NAME = require("constants").LEAVE_NAME
-local LEAVE_AMOUNT = require("constants").LEAVE_AMOUNT
+local LEAVE_ORDER = require("constants").LEAVE_ORDER
 
 function PopupManager.registerPopup(popup)
     table.insert(PopupManager.activePopup, popup)
@@ -28,11 +28,6 @@ local function closePopup(value)
             end
         end
     end
-end
-
-function PopupManager.confirmCancelPopup(width, height, func)
-    local _popup = popup:new(width, height, closePopup)
-    return _popup
 end
 
 local function setInputTitles(popup, x, y, text)
@@ -150,15 +145,17 @@ local function smallSelectionPopup(start, selections, type, onSelect)
 
     if type == CELL_TYPE.LEAVE_SELECTION then
         local i = 1
-        for k, v in pairs(LEAVE_NAME) do
-            local button = Button:new(x, y + (height * (i - 1)), width, height, v)
+        --for k, v in pairs(LEAVE_NAME) do
+        for i = 1, #LEAVE_ORDER, 1 do
+            local leaveName = LEAVE_NAME[LEAVE_ORDER[i]]
+            local button = Button:new(x, y + (height * (i - 1)), width, height, leaveName)
             button.isStatic = false
             button.textToLeft = true
 
             button:setOnClick(
                 function ()
                     if onSelect then
-                        onSelect(k)
+                        onSelect(LEAVE_ORDER[i])
                     end
                 end
             )

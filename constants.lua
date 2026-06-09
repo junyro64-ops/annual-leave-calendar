@@ -84,6 +84,14 @@ Constants.LEAVE_NAME = {
     LEAVE_ONE_DAY = "연차"
 }
 
+Constants.LEAVE_ORDER = {
+    "LEAVE_AM_QUARTER", 
+    "LEAVE_PM_QUARTER", 
+    "LEAVE_AM_HALF", 
+    "LEAVE_PM_HALF", 
+    "LEAVE_ONE_DAY"
+}
+
 Constants.ButtonGraphics = {
     idle = love.graphics.newImage("ui/button_idle.png"),
     hover = love.graphics.newImage("ui/button_hover.png"),
