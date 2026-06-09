@@ -3,6 +3,7 @@ local PopupManager = {}
 PopupManager.activePopup = {}
 
 local popup = require("popup")
+local Cell = require("cell")
 local Button = require("button")
 local TextInput = require("text_input")
 local GraphicsButton = require("graphics_button")
@@ -14,6 +15,8 @@ local FONT_SIZE = require("constants").FONT_SIZE
 
 local LEAVE_NAME = require("constants").LEAVE_NAME
 local LEAVE_ORDER = require("constants").LEAVE_ORDER
+
+local POSITION = require("constants").POSITION
 
 function PopupManager.registerPopup(popup)
     table.insert(PopupManager.activePopup, popup)
@@ -364,13 +367,73 @@ end
 
 local function employeeLeaveData(EmployeeManager, name)
     local screen_x, screen_y = love.graphics.getDimensions()
-    local width = screen_x
-    local height = screen_y / 2
-    local newPopup = popup:new(width, height, closePopup)
+    local popupWidth = screen_x
+    local popupHeight = screen_y / 2
+    local newPopup = popup:new(popupWidth, popupHeight, closePopup)
+    
+    local boundaryWidth = popupWidth - 100
+    local boundaryHeight = popupHeight - 100
 
+    local boundary_x = (popupWidth - boundaryWidth) / 2
+    local boundary_y = (popupHeight - boundaryHeight) / 2
+
+    local boundary_cell = Cell:new(boundary_x, boundary_y, boundaryWidth, boundaryHeight)
+    --boundary_cell:disableLine()
+
+    newPopup:addChild(boundary_cell)
+
+    local cellWidth = boundaryWidth / 18
+    local cellHeight = boundaryHeight / 8
+
+    local top_boundary = Cell:new(0, 0, boundaryWidth, cellHeight)
+
+    boundary_cell:addChild(top_boundary)
 
 
     table.insert(PopupManager.activePopup, newPopup)
+end
+
+local function loopThroughPosition(EmployeeManager, value)
+    local arr = {}
+    for k, v in pairs(EmployeeManager.database) do
+        if v.position == value then
+            table.insert(arr, k)
+        end
+    end
+    return arr
+end
+
+local function flattenArray(arr)
+    local flat = {}
+    for _, list in ipairs(arr) do
+        for _, value in ipairs(list) do
+            flat[#flat + 1] = value
+        end
+    end
+    return flat
+end
+
+local function orderEmployeeByPosition(EmployeeManager)
+    local arr = {}
+
+    for i = 1, #POSITION, 1 do
+        local key = loopThroughPosition(EmployeeManager, POSITION[i])
+        if #key > 0 then
+            table.sort(key, function (a, b)
+                local dataA = EmployeeManager.database[a]
+                local dataB = EmployeeManager.database[b]
+
+                if dataA.employmentYear ~= dataB.employmentYear then
+                    return dataA.employmentYear < dataB.employmentYear
+                end
+                
+                return a < b
+            end)
+            table.insert(arr, key) 
+        end
+    end
+
+    return flattenArray(arr)
 end
 
 function PopupManager.showEmployee(EmployeeManager, calendarChanged)
@@ -388,12 +451,7 @@ function PopupManager.showEmployee(EmployeeManager, calendarChanged)
 
     newPopup.itemStride = height
 
-    local sortedNames = {}
-    for name, data in pairs(EmployeeManager.database) do
-        table.insert(sortedNames, name)
-    end
-
-    table.sort(sortedNames)
+    local sortedNames = orderEmployeeByPosition(EmployeeManager)
 
     for i, name in ipairs(sortedNames) do
         local employee = Button:new(x, y + (height * (i - 1)), width, height, name)

@@ -92,6 +92,16 @@ Constants.LEAVE_ORDER = {
     "LEAVE_ONE_DAY"
 }
 
+Constants.POSITION = {
+    "상무",
+    "부장",
+    "차장",
+    "과장",
+    "실장",
+    "대리",
+    "사원"
+}
+
 Constants.ButtonGraphics = {
     idle = love.graphics.newImage("ui/button_idle.png"),
     hover = love.graphics.newImage("ui/button_hover.png"),

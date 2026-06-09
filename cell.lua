@@ -8,6 +8,8 @@ function Cell:new(x, y, width, height, type, value)
 
     instance.type = type
     instance.value = value
+
+    instance.line = true
     
     instance.children = {}
 
@@ -16,13 +18,18 @@ function Cell:new(x, y, width, height, type, value)
     return instance
 end
 
+function Cell:disableLine()
+    self.line = false
+end
+
 function Cell:addChild(element)
     table.insert(self.children, element)
 end
 
 function Cell:customDraw()
-    
-    love.graphics.rectangle("line", 0, 0, self.width, self.height)
+    if self.line == true then
+        love.graphics.rectangle("line", 0, 0, self.width, self.height)
+    end
     
     for _, child in ipairs(self.children) do
 		if child.draw then
