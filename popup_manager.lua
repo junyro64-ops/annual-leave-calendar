@@ -365,10 +365,17 @@ function PopupManager.addEmployee(EmployeeManager, func)
     table.insert(PopupManager.activePopup, newPopup)
 end
 
-local function employeeLeaveData(EmployeeManager, name)
+local function employeeLeaveData(EmployeeManager, name_pos, calculateUpToDateLeaves)
+    local name = EmployeeManager.database[name_pos].name
+    local employmentYear = EmployeeManager.database[name_pos].employmentYear
+    local maxLeave = EmployeeManager.database[name_pos].maxLeave
+    local leaveStartYear = EmployeeManager.database[name_pos].leaveStartYear
+    local leaveStartMonth = EmployeeManager.database[name_pos].leaveStartMonth
+    local position = EmployeeManager.database[name_pos].position
+
     local screen_x, screen_y = love.graphics.getDimensions()
     local popupWidth = screen_x
-    local popupHeight = screen_y / 2
+    local popupHeight = 300
     local newPopup = popup:new(popupWidth, popupHeight, closePopup)
     
     local boundaryWidth = popupWidth - 100
@@ -378,16 +385,102 @@ local function employeeLeaveData(EmployeeManager, name)
     local boundary_y = (popupHeight - boundaryHeight) / 2
 
     local boundary_cell = Cell:new(boundary_x, boundary_y, boundaryWidth, boundaryHeight)
-    --boundary_cell:disableLine()
+    boundary_cell:disableLine()
 
     newPopup:addChild(boundary_cell)
 
     local cellWidth = boundaryWidth / 18
-    local cellHeight = boundaryHeight / 8
+    local cellHeight = boundaryHeight / 2
+    local labelHeight = Fonts.small:getHeight()
+    local labelY = (cellHeight - labelHeight) / 2
+    local labelY2 = (cellHeight - (labelHeight * 2)) / 2
 
     local top_boundary = Cell:new(0, 0, boundaryWidth, cellHeight)
-
+    local name_label = Cell:new(0, 0, cellWidth, cellHeight)
+    local name_button = Button:new(0, labelY, cellWidth, labelHeight, "이름")
+    name_button:setFontSize(FONT_SIZE.small)
+    name_label:addChild(name_button)
+    local position_label = Cell:new(cellWidth, 0, cellWidth, cellHeight)
+    local position_button = Button:new(0, labelY, cellWidth, labelHeight, "직책")
+    position_button:setFontSize(FONT_SIZE.small)
+    position_label:addChild(position_button)
+    local max_leave_label = Cell:new(cellWidth * 2, 0, cellWidth, cellHeight)
+    local max_leave_button = Button:new(0, labelY2, cellWidth, labelHeight, "연차")
+    local max_leave_button2 = Button:new(0, labelY2 + labelHeight, cellWidth, labelHeight, "일수")
+    max_leave_button:setFontSize(FONT_SIZE.small)
+    max_leave_button2:setFontSize(FONT_SIZE.small)
+    max_leave_label:addChild(max_leave_button)
+    max_leave_label:addChild(max_leave_button2)
+    local carried_label = Cell:new(cellWidth * 3, 0, cellWidth, cellHeight)
+    local carried_button = Button:new(0, labelY, cellWidth, labelHeight, "이월")
+    carried_button:setFontSize(FONT_SIZE.small)
+    carried_label:addChild(carried_button)
+    local top_label = Cell:new(cellWidth * 4, 0, cellWidth * 12, cellHeight / 2)
+    local top_button = Button:new(0, labelY / 4, top_label.width, labelHeight,
+                        "사 용 계 획   " .. leaveStartYear .. " ~ " .. (leaveStartYear + 1))
+    top_button:setFontSize(FONT_SIZE.small)
+    top_label:addChild(top_button)
+    for i = 1, 12, 1 do
+        local month = ((leaveStartMonth + (i - 1) - 1) % 12) + 1
+        local month_button = Button:new(cellWidth * (i - 1), cellHeight / 2, cellWidth, cellHeight / 2, month .. " 월")
+        month_button:setFontSize(FONT_SIZE.small)
+        month_button:setDrawLine()
+        top_label:addChild(month_button)
+    end
+    local used_leave_label = Cell:new(cellWidth * 16, 0, cellWidth, cellHeight)
+    local used_leave_button = Button:new(0, labelY, cellWidth, labelHeight, "합계")
+    used_leave_button:setFontSize(FONT_SIZE.small)
+    used_leave_label:addChild(used_leave_button)
+    local left_leave_label = Cell:new(cellWidth * 17, 0, cellWidth, cellHeight)
+    local left_leave_button = Button:new(0, labelY, cellWidth, labelHeight, "잔여")
+    left_leave_button:setFontSize(FONT_SIZE.small)
+    left_leave_label:addChild(left_leave_button)
+    top_boundary:addChild(name_label)
+    top_boundary:addChild(position_label)
+    top_boundary:addChild(max_leave_label)
+    top_boundary:addChild(carried_label)
+    top_boundary:addChild(top_label)
+    top_boundary:addChild(used_leave_label)
+    top_boundary:addChild(left_leave_label)
     boundary_cell:addChild(top_boundary)
+
+    local bottom_boundary = Cell:new(0, cellHeight, boundaryWidth, cellHeight)
+    local bottom_cell = {}
+    for i = 1, 18, 1 do
+        bottom_cell[i] = Cell:new(cellWidth * (i - 1), 0, cellWidth, cellHeight)
+        bottom_boundary:addChild(bottom_cell[i])
+    end
+    local employeeName = Button:new(0, labelY2, cellWidth, labelHeight, name)
+    employeeName:setFontSize(FONT_SIZE.small)
+    local employed_year = Button:new(0, labelY2 + labelHeight, cellWidth, labelHeight, employmentYear)
+    employed_year:setFontSize(FONT_SIZE.small)
+    bottom_cell[1]:addChild(employeeName)
+    bottom_cell[1]:addChild(employed_year)
+    local employee_position = Button:new(0, labelY, cellWidth, labelHeight, position)
+    employee_position:setFontSize(FONT_SIZE.small)
+    bottom_cell[2]:addChild(employee_position)
+    local employee_maxleave = Button:new(0, labelY, cellWidth, labelHeight, maxLeave)
+    employee_maxleave:setFontSize(FONT_SIZE.small)
+    bottom_cell[3]:addChild(employee_maxleave)
+    -- local carry_button = Button:new(0, labelY, cellWidth, labelHeight)
+    -- carry_button:setOnDoubleClick(
+    --     function ()
+    --         local carryPopup = popup:new(cellHeight, cellHeight)
+    --         local x, y = love.mouse.getPosition()
+    --         carryPopup:setPositionToClick(x, y)
+    --         local carryInput = TextInput:new(0, labelY, cellWidth, cellHeight)
+    --         local carry = tonumber(carryInput:returnText())
+    --         if type(carry) == "number" then
+    --         else
+    --         end
+
+    --         table.insert(PopupManager.activePopup, carryPopup)
+    --     end
+    -- )
+    -- bottom_cell[4]:addChild(carry_button)
+
+    
+    boundary_cell:addChild(bottom_boundary)
 
 
     table.insert(PopupManager.activePopup, newPopup)
@@ -436,7 +529,7 @@ local function orderEmployeeByPosition(EmployeeManager)
     return flattenArray(arr)
 end
 
-function PopupManager.showEmployee(EmployeeManager, calendarChanged)
+function PopupManager.showEmployee(EmployeeManager, calendarChanged, calculateUpToDateLeaves)
     local newPopup = popup:new(230, 500)
     newPopup.is_scrollable = true
     local x, y = love.mouse.getPosition()
@@ -480,7 +573,7 @@ function PopupManager.showEmployee(EmployeeManager, calendarChanged)
         employee:setOnDoubleClick(
             function ()
                 closePopup()
-                employeeLeaveData(EmployeeManager, name)
+                employeeLeaveData(EmployeeManager, name, calculateUpToDateLeaves)
             end
         )
         newPopup:addChild(employee)

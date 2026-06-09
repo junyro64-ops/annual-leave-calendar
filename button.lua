@@ -33,6 +33,10 @@ function Button:new(x, y, width, height, text)
     return instance
 end
 
+function Button:setText(text)
+    self.text = text
+end
+
 function Button:setFontSize(size)
     self.font_size = size
 end
