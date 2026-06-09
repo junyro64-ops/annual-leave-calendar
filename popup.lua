@@ -121,44 +121,41 @@ function popup:update(dt, x, y)
 	end
 end
 
-local function activateClick(element, x, y, click, presses)
-	if element:isClicked(x, y) then
-		element.isActive = true
-		if presses > 1 and click == 1 and element.onDoubleClick then
-			element:onDoubleClick()
-		end
-		if click == 1 and element.onClick then
-            element:onClick()
-        elseif click == 2 and element.onRightClick then
-            element:onRightClick()
-        end
-		return true
-	end
-	return false
-end
+function popup:mousePressed(_x, _y, mouseButton, presses)
+	local x = _x - self.x
+	local y = _y - self.y
 
-function popup:mousePressed(x, y, mouseButton, presses)
-	local x = x - self.x
-	local y = y - self.y
-
-	for _, element in ipairs(self.children) do
+	local function deactivate(element)
 		element.isActive = false
+		if element.children then
+			for _, child in ipairs(element.children) do
+				deactivate(element)
+			end
+		end
 	end
 
 	for _, element in ipairs(self.children) do
+		deactivate(element)
+	end
+
+	for i = #self.children, 1, -1 do
+		local element = self.children[i]
 
 		if element.isStatic then
-			if activateClick(element, x, y, mouseButton, presses) then return true end
+			if element:mousePressed(x, y, mouseButton, presses) then
+				return true
+			end
 		else
 			local top = self.scroll_window_y - self.y
 			local bottom = top + self.scroll_height
-
+		
 			if y >= top and y <= bottom then
-				local local_y = y - (self.scrollY or 0)
-				if activateClick(element, x, local_y, mouseButton, presses) then return true end
+				local scroll_y = y - (self.scrollY or 0)
+				if element:mousePressed(x, scroll_y, mouseButton, presses) then
+					return true
+				end
 			end
 		end
-
 	end
 
 	return false

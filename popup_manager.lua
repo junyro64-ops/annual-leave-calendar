@@ -147,8 +147,6 @@ local function smallSelectionPopup(start, selections, type, onSelect)
     end
 
     if type == CELL_TYPE.LEAVE_SELECTION then
-        local i = 1
-        --for k, v in pairs(LEAVE_NAME) do
         for i = 1, #LEAVE_ORDER, 1 do
             local leaveName = LEAVE_NAME[LEAVE_ORDER[i]]
             local button = Button:new(x, y + (height * (i - 1)), width, height, leaveName)

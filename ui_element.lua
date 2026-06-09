@@ -68,25 +68,31 @@ function UIElement:onDoubleClick()
     end
 end
 
-function UIElement:mousePressed(x, y, mouseButton, presses)
-	local x = x - self.x
-	local y = y - self.y
-	for _, element in ipairs(self.children) do
-        if element:isClicked(x, y) then
-            element.isActive = true
-            if presses > 1 and mouseButton == 1 and element.onDoubleClick then
-                element:onDoubleClick()
-            end
-            if mouseButton == 1 and element.onClick then
-                element:onClick()
-            elseif mouseButton == 2 and element.onRightClick then
-                element:onRightClick()
-            end
+function UIElement:mousePressed(_x, _y, mouseButton, presses)
+    if not self:isClicked(_x, _y) then return false end
+    
+	local x = _x - self.x
+	local y = _y - self.y
+
+    for i = #self.children, 1, -1 do
+        local element = self.children[i]
+        if element:mousePressed(x, y, mouseButton, presses) then
             return true
         end
-	end
+    end
 
-	return false
+    self.isActive = true
+    
+    if presses > 1 and mouseButton == 1 and self.onDoubleClick then
+        self:onDoubleClick()
+    end
+    if mouseButton == 1 and self.onClick then
+        self:onClick()
+    elseif mouseButton == 2 and self.onRightClick then
+        self:onRightClick()
+    end
+
+	return true
 end
 
 function UIElement:setFontColor(color)
