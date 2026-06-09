@@ -129,7 +129,7 @@ function popup:mousePressed(_x, _y, mouseButton, presses)
 		element.isActive = false
 		if element.children then
 			for _, child in ipairs(element.children) do
-				deactivate(element)
+				deactivate(child)
 			end
 		end
 	end

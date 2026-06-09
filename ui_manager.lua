@@ -304,12 +304,12 @@ local function calculateUpToDateLeaves(name, _year, _month, _day, index)
     local leaveStartMonth = employee.leaveStartMonth
     local usedLeave = 0
 
-    local function addLeaves(leaveData)
+    local function addLeaves(leaveData, limitIndex)
         local amount = 0
         if leaveData then
             for i, leaveName in ipairs(leaveData) do
                 amount = amount + LEAVE_AMOUNT[leaveName]
-                if index and i == index then break end
+                if limitIndex and i == limitIndex then break end
             end
         end
         return amount
@@ -332,7 +332,8 @@ local function calculateUpToDateLeaves(name, _year, _month, _day, index)
                 if data[_year][month] then
                     for day = 1, 31, 1 do
                         if data[_year][month][day] then
-                            usedLeave = usedLeave + addLeaves(data[_year][month][day])
+                            local limit = (month == _month and day == _day) and index or nil
+                            usedLeave = usedLeave + addLeaves(data[_year][month][day], limit)
                         end
                         if month == _month and day == _day then break end
                     end
@@ -344,7 +345,8 @@ local function calculateUpToDateLeaves(name, _year, _month, _day, index)
             if data[_year][month] then
                 for day = 1, 31, 1 do
                     if data[_year][month][day] then
-                        usedLeave = usedLeave + addLeaves(data[_year][month][day])
+                        local limit = (month == _month and day == _day) and index or nil
+                        usedLeave = usedLeave + addLeaves(data[_year][month][day], limit)
                     end
                     if month == _month and day == _day then break end
                 end

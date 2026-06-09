@@ -162,7 +162,6 @@ local function smallSelectionPopup(start, selections, type, onSelect)
             )
 
             newPopup:addChild(button)
-            i = i + 1
         end
     end
 
