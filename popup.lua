@@ -115,13 +115,9 @@ function popup:customDraw()
 	end
 end
 
-local function getLocalCoordinate(self)
-	local x, y = love.mouse.getPosition()
-	return x - self.x, y - self.y
-end
-
-function popup:update(dt)
-	local x, y = getLocalCoordinate(self)
+function popup:update(dt, x, y)
+	local x = x - self.x
+	local y = y - self.y
 
 	for _, element in ipairs(self.children) do
 		if element.update then
@@ -138,16 +134,17 @@ local function activateClick(element, x, y, click, presses)
 		end
 		if click == 1 and element.onClick then
             element:onClick()
-        elseif click == 2 and element.rightClick then
-            element:rightClick()
+        elseif click == 2 and element.onRightClick then
+            element:onRightClick()
         end
 		return true
 	end
 	return false
 end
 
-function popup:mousePressed(mouseButton, presses)
-	local x, y = getLocalCoordinate(self)
+function popup:mousePressed(x, y, mouseButton, presses)
+	local x = x - self.x
+	local y = y - self.y
 
 	for _, element in ipairs(self.children) do
 		element.isActive = false

@@ -15,7 +15,7 @@ function Button:new(x, y, width, height, text)
     local instance = UIElement:new(x, y, width, height)
 
     instance.state = STATE.IDLE
-    instance.text = text
+    instance.text = text and text or ""
 
     instance.textToLeft = false
 

@@ -76,6 +76,7 @@ function UIManager.setCurrentDate()
 end
 
 function UIManager:update(dt)
+    local x, y = love.mouse.getPosition()
 	if calendar_changed then
 		UIManager.loadCalendar(currentYear, currentMonth)
 		calendar_changed = false
@@ -83,7 +84,7 @@ function UIManager:update(dt)
     if #PopupManager.activePopup > 0 then 
         local popup = PopupManager.activePopup[#PopupManager.activePopup]
         if popup.update then
-            popup:update(dt)
+            popup:update(dt, x, y)
         end
         return 
     end
@@ -231,7 +232,7 @@ function UIManager.mousePressed(x, y, mouseButton, presses)
         end
 
         if topPopup.mousePressed then
-            topPopup:mousePressed(mouseButton, presses)
+            topPopup:mousePressed(x, y, mouseButton, presses)
         end
 
         return true

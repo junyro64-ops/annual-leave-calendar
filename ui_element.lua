@@ -1,6 +1,8 @@
 local UIElement = {}
 UIElement.__index = UIElement
 
+local Constants = require("constants")
+
 function UIElement:new(x, y, width, height)
     local instance = {
         x = x or 0,
@@ -10,8 +12,8 @@ function UIElement:new(x, y, width, height)
     }
     setmetatable(instance, self)
 
-    instance.Fonts = require("constants").FONTS
-    instance.FONT_COLOR = require("constants").FONT_COLOR
+    instance.Fonts = Constants.FONTS
+    instance.FONT_COLOR = Constants.FONT_COLOR
     instance.fontColor = {0, 0, 0}
     instance.callback = nil
     instance.doubleClick = nil
@@ -46,6 +48,12 @@ end
 function UIElement:onClick()
     if self.callback then
         self.callback()
+    end
+end
+
+function UIElement:onRightClick()
+    if self.rightClick then
+        self.rightClick()
     end
 end
 

@@ -462,22 +462,22 @@ local function employeeLeaveData(EmployeeManager, name_pos, calculateUpToDateLea
     local employee_maxleave = Button:new(0, labelY, cellWidth, labelHeight, maxLeave)
     employee_maxleave:setFontSize(FONT_SIZE.small)
     bottom_cell[3]:addChild(employee_maxleave)
-    -- local carry_button = Button:new(0, labelY, cellWidth, labelHeight)
-    -- carry_button:setOnDoubleClick(
-    --     function ()
-    --         local carryPopup = popup:new(cellHeight, cellHeight)
-    --         local x, y = love.mouse.getPosition()
-    --         carryPopup:setPositionToClick(x, y)
-    --         local carryInput = TextInput:new(0, labelY, cellWidth, cellHeight)
-    --         local carry = tonumber(carryInput:returnText())
-    --         if type(carry) == "number" then
-    --         else
-    --         end
+    local carry_button = Button:new(0, labelY, cellWidth, labelHeight)
+    carry_button:setOnDoubleClick(
+        function ()
+            local carryPopup = popup:new(cellHeight, cellHeight)
+            local x, y = love.mouse.getPosition()
+            carryPopup:setPositionToClick(x, y)
+            -- local carryInput = TextInput:new(0, labelY, cellWidth, cellHeight)
+            -- local carry = tonumber(carryInput:returnText())
+            -- if type(carry) == "number" then
+            -- else
+            -- end
 
-    --         table.insert(PopupManager.activePopup, carryPopup)
-    --     end
-    -- )
-    -- bottom_cell[4]:addChild(carry_button)
+            table.insert(PopupManager.activePopup, carryPopup)
+        end
+    )
+    bottom_cell[4]:addChild(carry_button)
 
     
     boundary_cell:addChild(bottom_boundary)
