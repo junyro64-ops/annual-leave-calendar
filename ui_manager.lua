@@ -521,7 +521,7 @@ function UIManager.loadCalendar(year, month)
     table.insert(UIManager.elements, show_employee_button)
     show_employee_button:setOnClick(
         function()
-            PopupManager.showEmployee(EmployeeManager, calendarChanged, calculateUpToDateLeaves)
+            PopupManager.showEmployee(EmployeeManager, calendarChanged)
         end
     )
 

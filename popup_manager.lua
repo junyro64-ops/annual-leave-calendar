@@ -15,6 +15,7 @@ local FONT_SIZE = require("constants").FONT_SIZE
 
 local LEAVE_NAME = require("constants").LEAVE_NAME
 local LEAVE_ORDER = require("constants").LEAVE_ORDER
+local LEAVE_AMOUNT = require("constants").LEAVE_AMOUNT
 
 local POSITION = require("constants").POSITION
 
@@ -362,13 +363,18 @@ function PopupManager.addEmployee(EmployeeManager, func)
     table.insert(PopupManager.activePopup, newPopup)
 end
 
-local function employeeLeaveData(EmployeeManager, name_pos, calculateUpToDateLeaves)
+local function employeeLeaveData(EmployeeManager, name_pos)
     local name = EmployeeManager.database[name_pos].name
     local employmentYear = EmployeeManager.database[name_pos].employmentYear
     local maxLeave = EmployeeManager.database[name_pos].maxLeave
     local leaveStartYear = EmployeeManager.database[name_pos].leaveStartYear
     local leaveStartMonth = EmployeeManager.database[name_pos].leaveStartMonth
     local position = EmployeeManager.database[name_pos].position
+    
+    local carriedLeave = EmployeeManager.database[name_pos].carriedLeave or 0
+    local totalUsedLeave = 0
+
+    local leavesLeft
 
     local screen_x, screen_y = love.graphics.getDimensions()
     local popupWidth = screen_x
@@ -459,23 +465,69 @@ local function employeeLeaveData(EmployeeManager, name_pos, calculateUpToDateLea
     local employee_maxleave = Button:new(0, labelY, cellWidth, labelHeight, maxLeave)
     employee_maxleave:setFontSize(FONT_SIZE.small)
     bottom_cell[3]:addChild(employee_maxleave)
-    local carry_button = Button:new(0, labelY, cellWidth, labelHeight)
+    local carryText = carriedLeave and carriedLeave or ""
+    local carry_button = Button:new(0, 0, cellWidth, cellHeight, carryText)
+    carry_button:setFontSize(FONT_SIZE.small)
+    carry_button:setFontColor("RED")
     carry_button:setOnDoubleClick(
         function ()
-            local carryPopup = popup:new(cellWidth, cellHeight)
+            local carryPopup = popup:new(cellHeight, cellWidth)
             local x, y = love.mouse.getPosition()
             carryPopup:setPositionToClick(x, y)
-            -- local carryInput = TextInput:new(0, labelY, cellWidth, cellHeight)
-            -- local carry = tonumber(carryInput:returnText())
-            -- if type(carry) == "number" then
-            -- else
-            -- end
+            local carryInput = TextInput:new(0, 0, cellHeight, cellWidth)
+            carryInput:activate()
+            carryInput:setOnEnter(
+                function ()
+                    local carry = tonumber(carryInput:returnText())
+                    if carry ~= nil and carry % 0.25 == 0 then
+                        carry_button:setText(carry)
+                        EmployeeManager.database[name_pos].carriedLeave = carry
+
+                        leavesLeft:setText(maxLeave - carry - totalUsedLeave)
+
+                        table.remove(PopupManager.activePopup)
+                    else
+                        PopupManager.message_popup("잘못된 입력입니다.")
+                    end
+                end
+            )
+            carryPopup:addChild(carryInput)
 
             table.insert(PopupManager.activePopup, carryPopup)
         end
     )
     bottom_cell[4]:addChild(carry_button)
-
+    local calculateMonthUsedLeave = function (name, year, month)
+        local data = EmployeeManager.database[name]
+        local usedLeave = 0
+        data.leaveDates[year] = data.leaveDates[year] or {}
+        data.leaveDates[year][month] = data.leaveDates[year][month] or {}
+        if data.leaveDates[year][month] then
+            for day, amount in pairs(data.leaveDates[year][month]) do
+                for _, v in pairs(data.leaveDates[year][month][day]) do
+                    usedLeave = usedLeave + LEAVE_AMOUNT[v]
+                end
+            end
+        end
+        return usedLeave
+    end
+    for i = 1, 12, 1 do
+        local month = ((leaveStartMonth + (i - 1) - 1) % 12) + 1
+        local year = (12 - leaveStartMonth > (i - 1)) and leaveStartYear or leaveStartYear + 1
+        local usedLeave = calculateMonthUsedLeave(name_pos, year, month)
+        totalUsedLeave = totalUsedLeave + usedLeave
+        local button = Button:new(0, labelY, cellWidth, labelHeight, usedLeave)
+        button:setFontSize(FONT_SIZE.small)
+        bottom_cell[i + 4]:addChild(button)
+    end
+    local totalButton = Button:new(0, labelY, cellWidth, labelHeight, totalUsedLeave)
+    totalButton:setFontSize(FONT_SIZE.small)
+    totalButton:setFontColor("RED")
+    bottom_cell[17]:addChild(totalButton)
+    leavesLeft = Button:new(0, labelY, cellWidth, labelHeight, maxLeave - carriedLeave - totalUsedLeave)
+    leavesLeft:setFontSize(FONT_SIZE.small)
+    leavesLeft:setFontColor("RED")
+    bottom_cell[18]:addChild(leavesLeft)
     
     boundary_cell:addChild(bottom_boundary)
 
@@ -526,7 +578,7 @@ local function orderEmployeeByPosition(EmployeeManager)
     return flattenArray(arr)
 end
 
-function PopupManager.showEmployee(EmployeeManager, calendarChanged, calculateUpToDateLeaves)
+function PopupManager.showEmployee(EmployeeManager, calendarChanged)
     local newPopup = popup:new(230, 500)
     newPopup.is_scrollable = true
     local x, y = love.mouse.getPosition()
@@ -570,7 +622,7 @@ function PopupManager.showEmployee(EmployeeManager, calendarChanged, calculateUp
         employee:setOnDoubleClick(
             function ()
                 closePopup()
-                employeeLeaveData(EmployeeManager, name, calculateUpToDateLeaves)
+                employeeLeaveData(EmployeeManager, name)
             end
         )
         newPopup:addChild(employee)

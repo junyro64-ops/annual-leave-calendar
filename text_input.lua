@@ -16,6 +16,8 @@ function TextInput:new(x, y, width, height)
     instance.cursorTimer = 0
     instance.showCursor = true
 
+    instance.entered = nil
+
     return instance
 end
 
@@ -33,6 +35,10 @@ function TextInput:update(dt)
     else
         self.showCursor = false
     end
+end
+
+function TextInput:activate()
+    self.isActive = true
 end
 
 function TextInput:edit(text)
@@ -63,6 +69,14 @@ end
 
 function TextInput:onClick()
     self.isActive = true
+end
+
+function TextInput:setOnEnter(callback)
+    self.entered = callback
+end
+
+function TextInput:onEnter()
+    self.entered()
 end
 
 function TextInput:customDraw()

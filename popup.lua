@@ -65,7 +65,7 @@ function popup:keypressed(key)
 		if element.isActive then
 			if key == "backspace" then
 				element:removeText()
-			elseif key == "return" then
+			elseif key == "return" or key == "kpenter" then
 				if element.onEnter then
 					element:onEnter()
 				else

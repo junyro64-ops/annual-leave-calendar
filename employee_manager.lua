@@ -57,6 +57,7 @@ function EmployeeManager.addEmployee(name, employmentYear, maxLeave, year, month
 		leaveStartMonth = month,
 		position = position,
 		usedLeave = 0,
+		carriedLeave = 0,
 		leaveDates = {} -- saves leave names in [year][month][day] table
 	}
 
