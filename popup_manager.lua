@@ -363,7 +363,7 @@ function PopupManager.addEmployee(EmployeeManager, func)
     table.insert(PopupManager.activePopup, newPopup)
 end
 
-local function employeeLeaveData(EmployeeManager, name_pos)
+local function employeeLeaveData(EmployeeManager, name_pos, setYearMonth)
     local name = EmployeeManager.database[name_pos].name
     local employmentYear = EmployeeManager.database[name_pos].employmentYear
     local maxLeave = EmployeeManager.database[name_pos].maxLeave
@@ -513,10 +513,16 @@ local function employeeLeaveData(EmployeeManager, name_pos)
     end
     for i = 1, 12, 1 do
         local month = ((leaveStartMonth + (i - 1) - 1) % 12) + 1
-        local year = (12 - leaveStartMonth > (i - 1)) and leaveStartYear or leaveStartYear + 1
+        local year = ((12 - leaveStartMonth) < (i - 1)) and leaveStartYear + 1 or leaveStartYear
         local usedLeave = calculateMonthUsedLeave(name_pos, year, month)
         totalUsedLeave = totalUsedLeave + usedLeave
         local button = Button:new(0, labelY, cellWidth, labelHeight, usedLeave)
+        button:setOnDoubleClick(
+            function ()
+                closePopup()
+                setYearMonth(year, month)
+            end
+        )
         button:setFontSize(FONT_SIZE.small)
         bottom_cell[i + 4]:addChild(button)
     end
@@ -578,7 +584,7 @@ local function orderEmployeeByPosition(EmployeeManager)
     return flattenArray(arr)
 end
 
-function PopupManager.showEmployee(EmployeeManager, calendarChanged)
+function PopupManager.showEmployee(EmployeeManager, calendarChanged, setYearMonth)
     local newPopup = popup:new(230, 500)
     newPopup.is_scrollable = true
     local x, y = love.mouse.getPosition()
@@ -622,7 +628,7 @@ function PopupManager.showEmployee(EmployeeManager, calendarChanged)
         employee:setOnDoubleClick(
             function ()
                 closePopup()
-                employeeLeaveData(EmployeeManager, name)
+                employeeLeaveData(EmployeeManager, name, setYearMonth)
             end
         )
         newPopup:addChild(employee)
