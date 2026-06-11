@@ -60,7 +60,7 @@ local function createCellWithLabel(x, y, text, text2)
     return container
 end
 
-local function topBoundary(leaveStartYear, leaveStartMonth)
+local function topBoundary(x, y, leaveStartYear, leaveStartMonth)
     local boundary = Cell:new(0, 0, boundaryWidth, cellHeight)
 
     local top_boundary = {
@@ -213,7 +213,7 @@ function EmployeeLeaveDataPopup.employee(EmployeeManager, PopupManager, name_pos
 
     local boundary = setContainers(x, y)
 
-    local top_boundary = topBoundary(employee.leaveStartYear, employee.leaveStartMonth)
+    local top_boundary = topBoundary(x, y, employee.leaveStartYear, employee.leaveStartMonth)
     local bottom_boundary = bottomBoundary(PopupManager, employee, setYearMonth, closePopup)
     
     newPopup:addChild(boundary)
@@ -240,12 +240,11 @@ function EmployeeLeaveDataPopup.allEmployees(
     local y = (popupHeight - boundaryHeightAll) / 2
 
     local boundary = setContainers(x, y)
+    newPopup:addChild(boundary)
 
     local sortedNames = orderEmployeeByPosition(EmployeeManager)
 
     local leaveTable = {}
-    local years = {}
-    local months = {}
 
     for _, name in ipairs(sortedNames) do
         local employee = EmployeeManager.database[name]
@@ -253,22 +252,20 @@ function EmployeeLeaveDataPopup.allEmployees(
         local startYear = employee.leaveStartYear
         local startMonth = employee.leaveStartMonth
 
-        if #years < 1 then table.insert(years, startYear) end
-        for _, year in ipairs(years) do
-            if year == startYear then break 
-            else table.insert(years, startYear) end
-        end
-        if #months < 1 then table.insert(months, startMonth) end
-        for _, month in ipairs(months) do
-            if month == startMonth then break
-            else table.insert(months, month) end
-        end
-
         if startYear and startMonth then
             leaveTable[startYear] = leaveTable[startYear] or {}
             leaveTable[startYear][startMonth] = leaveTable[startYear][startMonth] or {}
 
             table.insert(leaveTable[startYear][startMonth], employee)
+        end
+    end
+
+    local index = 0
+    for year, months in pairs(leaveTable) do
+        for month, employees in pairs(leaveTable[year]) do
+            local top_boundary = topBoundary(x, y + (index * cellHeight), year, month)
+            boundary:addChild(top_boundary)
+            index = index + 1
         end
     end
 

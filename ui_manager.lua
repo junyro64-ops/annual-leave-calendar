@@ -535,7 +535,7 @@ function UIManager.loadCalendar(year, month)
     table.insert(UIManager.elements, show_leave_conditions_button)
     show_leave_conditions_button:setOnClick(
         function ()
-            
+            PopupManager.showAllEmployee(EmployeeManager, setYearMonth)
         end
     )
     

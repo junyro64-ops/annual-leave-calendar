@@ -461,6 +461,10 @@ function PopupManager.showEmployee(EmployeeManager, calendarChanged, setYearMont
     table.insert(PopupManager.activePopup, newPopup)
 end
 
+function PopupManager.showAllEmployee(EmployeeManager, setYearMonth)
+    EmployeeLeaveDataPopup.allEmployees(EmployeeManager, PopupManager, setYearMonth, closePopup, orderEmployeeByPosition)
+end
+
 function PopupManager.message_popup(text, func)
     local width = Fonts.medium:getWidth(text)
     local height = Fonts.medium:getHeight()
