@@ -60,20 +60,22 @@ local function createCellWithLabel(x, y, text, text2)
     return container
 end
 
-local function topBoundary(x, y, leaveStartYear, leaveStartMonth)
-    local boundary = Cell:new(0, 0, boundaryWidth, cellHeight)
+local function topBoundary(x, y, leaveStartYear, leaveStartMonth, isStatic)
+    local boundary = Cell:new(x, y, boundaryWidth, cellHeight)
+    if isStatic and isStatic == false then boundary.isStatic = false end
 
     local top_boundary = {
-        name = createCellWithLabel(0, 0, "이름"),
-        position = createCellWithLabel(cellWidth, 0, "직책"),
-        max_leave = createCellWithLabel(cellWidth * 2, 0, "연차", "일수"),
-        carry = createCellWithLabel(cellWidth * 3, 0, "이월"),
-        top = topYearMonthCell(cellWidth * 4, 0, leaveStartYear, leaveStartMonth),
-        total = createCellWithLabel(cellWidth * 16, 0, "합계"),
-        left_leave = createCellWithLabel(cellWidth * 17, 0, "잔여")
+        name = createCellWithLabel(0, y, "이름"),
+        position = createCellWithLabel(cellWidth, y, "직책"),
+        max_leave = createCellWithLabel(cellWidth * 2, y, "연차", "일수"),
+        carry = createCellWithLabel(cellWidth * 3, y, "이월"),
+        top = topYearMonthCell(cellWidth * 4, y, leaveStartYear, leaveStartMonth),
+        total = createCellWithLabel(cellWidth * 16, y, "합계"),
+        left_leave = createCellWithLabel(cellWidth * 17, y, "잔여")
     }
     
     for _,v in pairs(top_boundary) do
+        if isStatic and isStatic == false then v.isStatic = false end
         boundary:addChild(v)
     end
 
@@ -195,8 +197,9 @@ local function bottomBoundary(PopupManager, employee, setYearMonth, closePopup)
     return boundary
 end
 
-local function setContainers(x, y)
+local function setContainers(x, y, isStatic)
     local boundary = Cell:new(x, y, boundaryWidth, boundaryHeight)
+    if isStatic and isStatic == false then boundary.isStatic = false end
     boundary:disableLine()
 
     return boundary
@@ -213,7 +216,7 @@ function EmployeeLeaveDataPopup.employee(EmployeeManager, PopupManager, name_pos
 
     local boundary = setContainers(x, y)
 
-    local top_boundary = topBoundary(x, y, employee.leaveStartYear, employee.leaveStartMonth)
+    local top_boundary = topBoundary(0, 0, employee.leaveStartYear, employee.leaveStartMonth)
     local bottom_boundary = bottomBoundary(PopupManager, employee, setYearMonth, closePopup)
     
     newPopup:addChild(boundary)
@@ -236,10 +239,12 @@ function EmployeeLeaveDataPopup.allEmployees(
     newPopup.itemStride = 50
     newPopup.is_scrollable = true
 
-    local x = (popupWidth - boundaryWidth) / 2
-    local y = (popupHeight - boundaryHeightAll) / 2
+    local isStatic = false
 
-    local boundary = setContainers(x, y)
+    local x = (popupWidth - boundaryWidth) / 2
+    local y = (popupHeightAll - boundaryHeightAll) / 2
+
+    local boundary = setContainers(x, y, isStatic)
     newPopup:addChild(boundary)
 
     local sortedNames = orderEmployeeByPosition(EmployeeManager)
@@ -263,11 +268,13 @@ function EmployeeLeaveDataPopup.allEmployees(
     local index = 0
     for year, months in pairs(leaveTable) do
         for month, employees in pairs(leaveTable[year]) do
-            local top_boundary = topBoundary(x, y + (index * cellHeight), year, month)
+            local top_boundary = topBoundary(0, (index * cellHeight), year, month, isStatic)
             boundary:addChild(top_boundary)
             index = index + 1
         end
     end
+
+    boundary.height = math.max(boundaryHeightAll, index * cellHeight)
 
     table.insert(PopupManager.activePopup, newPopup)
 end
