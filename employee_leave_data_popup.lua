@@ -10,15 +10,13 @@ local FONT_SIZE = require("constants").FONT_SIZE
 
 local LEAVE_AMOUNT = require("constants").LEAVE_AMOUNT
 
-local screen_x, screen_y = love.graphics.getDimensions()
-local popupWidth = screen_x
+local popupWidth = 1320
 local popupHeight = 300
+local popupHeightAll = 900
     
-local boundaryWidth = popupWidth - 100
-local boundaryHeight = popupHeight - 100
-
-local boundary_x = (popupWidth - boundaryWidth) / 2
-local boundary_y = (popupHeight - boundaryHeight) / 2
+local boundaryWidth = 1200
+local boundaryHeight = 200
+local boundaryHeightAll = 800
 
 local cellWidth = boundaryWidth / 18
 local cellHeight = boundaryHeight / 2
@@ -100,7 +98,7 @@ local function setCarryInput(PopupManager, employee, carryText, leavesLeft, tota
                         carry_button:setText(carry)
                         employee.carriedLeave = carry
 
-                        leavesLeft:setText(employee.maxLeave - carry - totalUsedLeave)
+                        leavesLeft:setText(employee.maxLeave + carry - totalUsedLeave)
 
                         table.remove(PopupManager.activePopup)
                     else
@@ -113,6 +111,7 @@ local function setCarryInput(PopupManager, employee, carryText, leavesLeft, tota
             table.insert(PopupManager.activePopup, carryPopup)
         end
     )
+    return carry_button
 end
 
 local function createLabelWithSmallFont(text, color, func)
@@ -131,37 +130,28 @@ end
 
 
     
-local calculateMonthUsedLeave = function (data, year, month)
+local function calculateMonthUsedLeave(data, year, month)
     local usedLeave = 0
-    data.leaveDates[year] = data.leaveDates[year] or {}
-    data.leaveDates[year][month] = data.leaveDates[year][month] or {}
-    if data.leaveDates[year][month] then
-        for day, amount in pairs(data.leaveDates[year][month]) do
-            for _, v in pairs(data.leaveDates[year][month][day]) do
-                usedLeave = usedLeave + LEAVE_AMOUNT[v]
+    if data.leaveDates then
+        if data.leaveDates[year] then
+            if data.leaveDates[year][month] then
+                for day, dayLeaves in pairs(data.leaveDates[year][month]) do
+                    for _, v in pairs(dayLeaves) do
+                        usedLeave = usedLeave + LEAVE_AMOUNT[v]
+                    end
+                end
             end
         end
     end
     return usedLeave
 end
 
-local function gotoCalendar()
-end
-
 local function bottomBoundary(PopupManager, employee, setYearMonth, closePopup)
-    local boundary = Cell:new(0, 0, boundaryWidth, cellHeight)
+    local boundary = Cell:new(0, cellHeight, boundaryWidth, cellHeight)
 
     local carryText = employee.carriedLeave and employee.carriedLeave or ""
     local totalUsedLeave = 0
-    local leavesLeft
-
-    local bottom_boundary_left = {
-        name = createCellWithLabel(employee.name, employee.employmentYear),
-        position = createLabelWithSmallFont(employee.position),
-        maxLeave = createLabelWithSmallFont(employee.maxLeave),
-        carry = setCarryInput(PopupManager, employee, carryText, leavesLeft, totalUsedLeave)
-    }
-    local bottom_boundary_middle = {}
+    local monthlyData = {}
     for i = 1, 12, 1 do
         local month = ((employee.leaveStartMonth + (i - 1) - 1) % 12) + 1
         local year = ((12 - employee.leaveStartMonth) < (i - 1)) and employee.leaveStartYear + 1 or employee.leaveStartYear
@@ -173,64 +163,114 @@ local function bottomBoundary(PopupManager, employee, setYearMonth, closePopup)
                 setYearMonth(year, month)
             end
         )
-        table.insert(bottom_boundary_middle, monthlyLeaves)
+        table.insert(monthlyData, monthlyLeaves)
+    end
+    local leavesLeft = createLabelWithSmallFont(employee.maxLeave + employee.carriedLeave - totalUsedLeave, "RED")
+
+    local label_list = {}
+    local bottom_boundary_left = {
+        createCellWithLabel(0, 0, employee.name, employee.employmentYear),
+        createLabelWithSmallFont(employee.position),
+        createLabelWithSmallFont(employee.maxLeave),
+        setCarryInput(PopupManager, employee, carryText, leavesLeft, totalUsedLeave)
+    }
+    for _, v in ipairs(bottom_boundary_left) do
+        table.insert(label_list, v)
+    end
+    for _, v in ipairs(monthlyData) do
+        table.insert(label_list, v)
     end
     local totalUsed = createLabelWithSmallFont(totalUsedLeave, "RED")
-    leavesLeft = createLabelWithSmallFont(employee.maxLeave - employee.carriedLeave - totalUsedLeave, "RED")
+    leavesLeft:setText(employee.maxLeave + employee.carriedLeave - totalUsedLeave)
+    table.insert(label_list, totalUsed)
+    table.insert(label_list, leavesLeft)
 
     local bottom_cell = {}
     for i = 1, 18, 1 do
         bottom_cell[i] = Cell:new(cellWidth * (i - 1), 0, cellWidth, cellHeight)
+        bottom_cell[i]:addChild(label_list[i])
         boundary:addChild(bottom_cell[i])
     end
 
     return boundary
 end
 
-local function setContainers(closePopup)
-    local boundary = Cell:new(boundary_x, boundary_y, boundaryWidth, boundaryHeight)
+local function setContainers(x, y)
+    local boundary = Cell:new(x, y, boundaryWidth, boundaryHeight)
     boundary:disableLine()
 
     return boundary
 end
 
 function EmployeeLeaveDataPopup.employee(EmployeeManager, PopupManager, name_pos, setYearMonth, closePopup)
-    local employee = {
-        name = EmployeeManager.database[name_pos].name,
-        employmentYear = EmployeeManager.database[name_pos].employmentYear,
-        maxLeave = EmployeeManager.database[name_pos].maxLeave,
-        leaveStartYear = EmployeeManager.database[name_pos].leaveStartYear,
-        leaveStartMonth = EmployeeManager.database[name_pos].leaveStartMonth,
-        position = EmployeeManager.database[name_pos].position,
-    
-        carriedLeave = EmployeeManager.database[name_pos].carriedLeave or 0
-    }
-
-    local leavesLeft
+    local employee = EmployeeManager.database[name_pos]
+    employee.carriedLeave = employee.carriedLeave or 0
 
     local newPopup = popup:new(popupWidth, popupHeight, closePopup)
 
-    local boundary = setContainers(closePopup)
+    local x = (popupWidth - boundaryWidth) / 2
+    local y = (popupHeight - boundaryHeight) / 2
 
-    newPopup:addChild(boundary)
+    local boundary = setContainers(x, y)
 
     local top_boundary = topBoundary(employee.leaveStartYear, employee.leaveStartMonth)
-
-    boundary:addChild(top_boundary)
-
     local bottom_boundary = bottomBoundary(PopupManager, employee, setYearMonth, closePopup)
     
-    local totalButton = Button:new(0, labelY, cellWidth, labelHeight, totalUsedLeave)
-    totalButton:setFontSize(FONT_SIZE.small)
-    totalButton:setFontColor("RED")
-    bottom_cell[17]:addChild(totalButton)
-    leavesLeft = Button:new(0, labelY, cellWidth, labelHeight, maxLeave - carriedLeave - totalUsedLeave)
-    leavesLeft:setFontSize(FONT_SIZE.small)
-    leavesLeft:setFontColor("RED")
-    bottom_cell[18]:addChild(leavesLeft)
-    
+    newPopup:addChild(boundary)
+    boundary:addChild(top_boundary)
     boundary:addChild(bottom_boundary)
 
+    table.insert(PopupManager.activePopup, newPopup)
+end
+
+function EmployeeLeaveDataPopup.allEmployees(
+        EmployeeManager, PopupManager, setYearMonth, closePopup, orderEmployeeByPosition
+    )
+    
+    for _, employee in pairs(EmployeeManager.database) do
+        employee.carriedLeave = employee.carriedLeave or 0
+    end
+
+    local newPopup = popup:new(popupWidth, popupHeightAll, closePopup)
+    newPopup:setScrollWindow(boundaryWidth, boundaryHeightAll)
+    newPopup.itemStride = 50
+    newPopup.is_scrollable = true
+
+    local x = (popupWidth - boundaryWidth) / 2
+    local y = (popupHeight - boundaryHeightAll) / 2
+
+    local boundary = setContainers(x, y)
+
+    local sortedNames = orderEmployeeByPosition(EmployeeManager)
+
+    local leaveTable = {}
+    local years = {}
+    local months = {}
+
+    for _, name in ipairs(sortedNames) do
+        local employee = EmployeeManager.database[name]
+
+        local startYear = employee.leaveStartYear
+        local startMonth = employee.leaveStartMonth
+
+        if #years < 1 then table.insert(years, startYear) end
+        for _, year in ipairs(years) do
+            if year == startYear then break 
+            else table.insert(years, startYear) end
+        end
+        if #months < 1 then table.insert(months, startMonth) end
+        for _, month in ipairs(months) do
+            if month == startMonth then break
+            else table.insert(months, month) end
+        end
+
+        if startYear and startMonth then
+            leaveTable[startYear] = leaveTable[startYear] or {}
+            leaveTable[startYear][startMonth] = leaveTable[startYear][startMonth] or {}
+
+            table.insert(leaveTable[startYear][startMonth], employee)
+        end
+    end
 
     table.insert(PopupManager.activePopup, newPopup)
 end

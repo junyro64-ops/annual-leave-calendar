@@ -242,15 +242,16 @@ function EmployeeManager.useLeave(name, year, month, day, amount_key, checkAdmin
 		end
 	end
 	
-	table.insert(data.leaveDates[year][month][day], amount_key)
-
 	if currentCycle(name, year, month) then
 		local amount = LEAVE_AMOUNT[amount_key]
+		local carry = data.carriedLeave or 0
 		
 		data.usedLeave = data.usedLeave or 0
-		if (data.usedLeave + amount) > data.maxLeave then
+		if (data.usedLeave + amount) > (data.maxLeave + carry) then
 			return ERROR_CHECK.MAX_REACHED, "연차 횟수를 초과했습니다."
 		end
+		
+		table.insert(data.leaveDates[year][month][day], amount_key)
 		
 		data.usedLeave = data.usedLeave + amount
 	end
@@ -320,9 +321,11 @@ function EmployeeManager.editLeave(name, year, month, day, original_key, edit_ke
 	if currentCycle(name, year, month) then
 		local amountOriginal = LEAVE_AMOUNT[original_key]
 		local amountEdit = LEAVE_AMOUNT[edit_key]
+
+		local carry = data.carriedLeave or 0
 		
 		data.usedLeave = data.usedLeave or 0
-		if (data.usedLeave - amountOriginal + amountEdit) > data.maxLeave then
+		if (data.usedLeave - amountOriginal + amountEdit) > (data.maxLeave + carry) then
 			return ERROR_CHECK.MAX_REACHED, "연차 횟수를 초과했습니다."
 		end
 		
