@@ -60,9 +60,8 @@ local function createCellWithLabel(x, y, text, text2)
     return container
 end
 
-local function topBoundary(x, y, leaveStartYear, leaveStartMonth, isStatic)
+local function topBoundary(x, y, leaveStartYear, leaveStartMonth)
     local boundary = Cell:new(x, y, boundaryWidth, cellHeight)
-    if isStatic and isStatic == false then boundary.isStatic = false end
 
     local top_boundary = {
         name = createCellWithLabel(0, y, "이름"),
@@ -75,7 +74,6 @@ local function topBoundary(x, y, leaveStartYear, leaveStartMonth, isStatic)
     }
     
     for _,v in pairs(top_boundary) do
-        if isStatic and isStatic == false then v.isStatic = false end
         boundary:addChild(v)
     end
 
@@ -148,8 +146,8 @@ local function calculateMonthUsedLeave(data, year, month)
     return usedLeave
 end
 
-local function bottomBoundary(PopupManager, employee, setYearMonth, closePopup)
-    local boundary = Cell:new(0, cellHeight, boundaryWidth, cellHeight)
+local function bottomBoundary(x, y, PopupManager, employee, setYearMonth, closePopup)
+    local boundary = Cell:new(x, y, boundaryWidth, cellHeight)
 
     local carryText = employee.carriedLeave and employee.carriedLeave or ""
     local totalUsedLeave = 0
@@ -197,9 +195,8 @@ local function bottomBoundary(PopupManager, employee, setYearMonth, closePopup)
     return boundary
 end
 
-local function setContainers(x, y, isStatic)
+local function setContainers(x, y)
     local boundary = Cell:new(x, y, boundaryWidth, boundaryHeight)
-    if isStatic and isStatic == false then boundary.isStatic = false end
     boundary:disableLine()
 
     return boundary
@@ -217,13 +214,22 @@ function EmployeeLeaveDataPopup.employee(EmployeeManager, PopupManager, name_pos
     local boundary = setContainers(x, y)
 
     local top_boundary = topBoundary(0, 0, employee.leaveStartYear, employee.leaveStartMonth)
-    local bottom_boundary = bottomBoundary(PopupManager, employee, setYearMonth, closePopup)
+    local bottom_boundary = bottomBoundary(0, cellHeight, PopupManager, employee, setYearMonth, closePopup)
     
     newPopup:addChild(boundary)
     boundary:addChild(top_boundary)
     boundary:addChild(bottom_boundary)
 
     table.insert(PopupManager.activePopup, newPopup)
+end
+
+local function setScrollable(element)
+    element.isStatic = false
+    if element.children and #element.children > 0 then
+        for _, child in ipairs(element.children) do
+            setScrollable(child)
+        end
+    end
 end
 
 function EmployeeLeaveDataPopup.allEmployees(
@@ -239,12 +245,10 @@ function EmployeeLeaveDataPopup.allEmployees(
     newPopup.itemStride = 50
     newPopup.is_scrollable = true
 
-    local isStatic = false
-
     local x = (popupWidth - boundaryWidth) / 2
     local y = (popupHeightAll - boundaryHeightAll) / 2
 
-    local boundary = setContainers(x, y, isStatic)
+    local boundary = setContainers(x, y)
     newPopup:addChild(boundary)
 
     local sortedNames = orderEmployeeByPosition(EmployeeManager)
@@ -254,27 +258,33 @@ function EmployeeLeaveDataPopup.allEmployees(
     for _, name in ipairs(sortedNames) do
         local employee = EmployeeManager.database[name]
 
-        local startYear = employee.leaveStartYear
-        local startMonth = employee.leaveStartMonth
+        local year = employee.leaveStartYear
+        local month = employee.leaveStartMonth
 
-        if startYear and startMonth then
-            leaveTable[startYear] = leaveTable[startYear] or {}
-            leaveTable[startYear][startMonth] = leaveTable[startYear][startMonth] or {}
+        if year and month then
+            leaveTable[year] = leaveTable[year] or {}
+            leaveTable[year][month] = leaveTable[year][month] or {}
 
-            table.insert(leaveTable[startYear][startMonth], employee)
+            table.insert(leaveTable[year][month], employee)
         end
     end
 
     local index = 0
     for year, months in pairs(leaveTable) do
         for month, employees in pairs(leaveTable[year]) do
-            local top_boundary = topBoundary(0, (index * cellHeight), year, month, isStatic)
+            local top_boundary = topBoundary(0, index * cellHeight, year, month)
             boundary:addChild(top_boundary)
             index = index + 1
+            for _, employee in ipairs(employees) do
+                local bottom_boundary = bottomBoundary(0, index * cellHeight, PopupManager, employee, setYearMonth, closePopup)
+                boundary:addChild(bottom_boundary)
+                index = index + 1
+            end
         end
     end
 
     boundary.height = math.max(boundaryHeightAll, index * cellHeight)
+    setScrollable(boundary)
 
     table.insert(PopupManager.activePopup, newPopup)
 end

@@ -448,7 +448,7 @@ function UIManager.loadCalendar(year, month)
     table.insert(UIManager.headers, yearCell)
     -- month cell:
     x, y = calculatePos(CELL_TYPE.MONTH, month)
-	local monthCell = Cell:new(x, y, CELL_SIZE.MONTH.width, CELL_SIZE.MONTH.height, CELL_TYPE.MONTH, month)
+	local monthCell = Cell:new(x, y, CELL_SIZE.MONTH.width, CELL_SIZE.MONTH.height, CELL_TYPE.MONTH, month .. "월")
     PopupManager.setMonthPopup(monthCell, 
         function(selected_number)
             currentMonth = selected_number
