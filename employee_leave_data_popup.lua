@@ -64,13 +64,13 @@ local function topBoundary(x, y, leaveStartYear, leaveStartMonth)
     local boundary = Cell:new(x, y, boundaryWidth, cellHeight)
 
     local top_boundary = {
-        name = createCellWithLabel(0, y, "이름"),
-        position = createCellWithLabel(cellWidth, y, "직책"),
-        max_leave = createCellWithLabel(cellWidth * 2, y, "연차", "일수"),
-        carry = createCellWithLabel(cellWidth * 3, y, "이월"),
-        top = topYearMonthCell(cellWidth * 4, y, leaveStartYear, leaveStartMonth),
-        total = createCellWithLabel(cellWidth * 16, y, "합계"),
-        left_leave = createCellWithLabel(cellWidth * 17, y, "잔여")
+        name = createCellWithLabel(0, 0, "이름"),
+        position = createCellWithLabel(cellWidth, 0, "직책"),
+        max_leave = createCellWithLabel(cellWidth * 2, 0, "연차", "일수"),
+        carry = createCellWithLabel(cellWidth * 3, 0, "이월"),
+        top = topYearMonthCell(cellWidth * 4, 0, leaveStartYear, leaveStartMonth),
+        total = createCellWithLabel(cellWidth * 16, 0, "합계"),
+        left_leave = createCellWithLabel(cellWidth * 17, 0, "잔여")
     }
     
     for _,v in pairs(top_boundary) do
@@ -195,8 +195,8 @@ local function bottomBoundary(x, y, PopupManager, employee, setYearMonth, closeP
     return boundary
 end
 
-local function setContainers(x, y)
-    local boundary = Cell:new(x, y, boundaryWidth, boundaryHeight)
+local function setContainers(x, y, width, height)
+    local boundary = Cell:new(x, y, width, height)
     boundary:disableLine()
 
     return boundary
@@ -211,7 +211,7 @@ function EmployeeLeaveDataPopup.employee(EmployeeManager, PopupManager, name_pos
     local x = (popupWidth - boundaryWidth) / 2
     local y = (popupHeight - boundaryHeight) / 2
 
-    local boundary = setContainers(x, y)
+    local boundary = setContainers(x, y, boundaryWidth, boundaryHeight)
 
     local top_boundary = topBoundary(0, 0, employee.leaveStartYear, employee.leaveStartMonth)
     local bottom_boundary = bottomBoundary(0, cellHeight, PopupManager, employee, setYearMonth, closePopup)
@@ -223,15 +223,6 @@ function EmployeeLeaveDataPopup.employee(EmployeeManager, PopupManager, name_pos
     table.insert(PopupManager.activePopup, newPopup)
 end
 
-local function setScrollable(element)
-    element.isStatic = false
-    if element.children and #element.children > 0 then
-        for _, child in ipairs(element.children) do
-            setScrollable(child)
-        end
-    end
-end
-
 function EmployeeLeaveDataPopup.allEmployees(
         EmployeeManager, PopupManager, setYearMonth, closePopup, orderEmployeeByPosition
     )
@@ -241,19 +232,13 @@ function EmployeeLeaveDataPopup.allEmployees(
     end
 
     local newPopup = popup:new(popupWidth, popupHeightAll, closePopup)
-    newPopup:setScrollWindow(boundaryWidth, boundaryHeightAll)
-    newPopup.itemStride = 50
-    newPopup.is_scrollable = true
 
     local x = (popupWidth - boundaryWidth) / 2
     local y = (popupHeightAll - boundaryHeightAll) / 2
 
-    local boundary = setContainers(x, y)
-    newPopup:addChild(boundary)
-
     local sortedNames = orderEmployeeByPosition(EmployeeManager)
-
     local leaveTable = {}
+    local yearMonthKey = {}
 
     for _, name in ipairs(sortedNames) do
         local employee = EmployeeManager.database[name]
@@ -262,29 +247,38 @@ function EmployeeLeaveDataPopup.allEmployees(
         local month = employee.leaveStartMonth
 
         if year and month then
-            leaveTable[year] = leaveTable[year] or {}
-            leaveTable[year][month] = leaveTable[year][month] or {}
-
-            table.insert(leaveTable[year][month], employee)
+            local key = string.format("%04d-%02d", year, month)
+            if not leaveTable[key] then
+                leaveTable[key] = {
+                    year = year,
+                    month = month,
+                    employees = {}
+                }
+                table.insert(yearMonthKey, key)
+            end
+            table.insert(leaveTable[key].employees, employee)
         end
     end
 
     local index = 0
-    for year, months in pairs(leaveTable) do
-        for month, employees in pairs(leaveTable[year]) do
-            local top_boundary = topBoundary(0, index * cellHeight, year, month)
-            boundary:addChild(top_boundary)
+    for _, key in ipairs(yearMonthKey) do
+        local group = leaveTable[key]
+        local top_boundary = topBoundary(x, y + (index * cellHeight), group.year, group.month)
+        top_boundary.isStatic = false
+        newPopup:addChild(top_boundary)
+        index = index + 1
+        for _, employee in ipairs(group.employees) do
+            local bottom_boundary = bottomBoundary(x, y + (index * cellHeight), PopupManager, employee, setYearMonth, closePopup)
+            bottom_boundary.isStatic = false
+            newPopup:addChild(bottom_boundary)
             index = index + 1
-            for _, employee in ipairs(employees) do
-                local bottom_boundary = bottomBoundary(0, index * cellHeight, PopupManager, employee, setYearMonth, closePopup)
-                boundary:addChild(bottom_boundary)
-                index = index + 1
-            end
         end
+        index = index + 1
     end
 
-    boundary.height = math.max(boundaryHeightAll, index * cellHeight)
-    setScrollable(boundary)
+    newPopup:setScrollWindow(boundaryWidth, boundaryHeightAll)
+    newPopup.itemStride = cellHeight
+    newPopup.is_scrollable = true
 
     table.insert(PopupManager.activePopup, newPopup)
 end
