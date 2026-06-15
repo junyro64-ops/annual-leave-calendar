@@ -3,7 +3,6 @@ local EmployeeLeaveDataPopup = {}
 local Cell = require("cell")
 local popup = require("popup")
 local Button = require("button")
-local TextInput = require("text_input")
 
 local Fonts = require("constants").FONTS
 local FONT_SIZE = require("constants").FONT_SIZE
@@ -18,7 +17,7 @@ local boundaryWidth = 1200
 local boundaryHeight = 200
 local boundaryHeightAll = 800
 
-local cellWidth = boundaryWidth / 18
+local cellWidth = boundaryWidth / 17
 local cellHeight = boundaryHeight / 2
 local labelHeight = Fonts.small:getHeight()
 local labelY = (cellHeight - labelHeight) / 2
@@ -67,10 +66,9 @@ local function topBoundary(x, y, leaveStartYear, leaveStartMonth)
         name = createCellWithLabel(0, 0, "이름"),
         position = createCellWithLabel(cellWidth, 0, "직책"),
         max_leave = createCellWithLabel(cellWidth * 2, 0, "연차", "일수"),
-        carry = createCellWithLabel(cellWidth * 3, 0, "이월"),
-        top = topYearMonthCell(cellWidth * 4, 0, leaveStartYear, leaveStartMonth),
-        total = createCellWithLabel(cellWidth * 16, 0, "합계"),
-        left_leave = createCellWithLabel(cellWidth * 17, 0, "잔여")
+        top = topYearMonthCell(cellWidth * 3, 0, leaveStartYear, leaveStartMonth),
+        total = createCellWithLabel(cellWidth * 15, 0, "합계"),
+        left_leave = createCellWithLabel(cellWidth * 16, 0, "잔여")
     }
     
     for _,v in pairs(top_boundary) do
@@ -78,40 +76,6 @@ local function topBoundary(x, y, leaveStartYear, leaveStartMonth)
     end
 
     return boundary
-end
-
-local function setCarryInput(PopupManager, employee, carryText, leavesLeft, totalUsedLeave)
-    local carry_button = Button:new(0, 0, cellWidth, cellHeight, carryText)
-    carry_button:setFontSize(FONT_SIZE.small)
-    carry_button:setFontColor("RED")
-    carry_button:setOnDoubleClick(
-        function ()
-            local carryPopup = popup:new(cellHeight, cellWidth)
-            local x, y = love.mouse.getPosition()
-            carryPopup:setPositionToClick(x, y)
-            local carryInput = TextInput:new(0, 0, cellHeight, cellWidth)
-            carryInput:activate()
-            carryInput:setOnEnter(
-                function ()
-                    local carry = tonumber(carryInput:returnText())
-                    if carry ~= nil and carry % 0.25 == 0 then
-                        carry_button:setText(carry)
-                        employee.carriedLeave = carry
-
-                        leavesLeft:setText(employee.maxLeave + carry - totalUsedLeave)
-
-                        table.remove(PopupManager.activePopup)
-                    else
-                        PopupManager.message_popup("잘못된 입력입니다.")
-                    end
-                end
-            )
-            carryPopup:addChild(carryInput)
-
-            table.insert(PopupManager.activePopup, carryPopup)
-        end
-    )
-    return carry_button
 end
 
 local function createLabelWithSmallFont(text, color, func)
@@ -146,10 +110,9 @@ local function calculateMonthUsedLeave(data, year, month)
     return usedLeave
 end
 
-local function bottomBoundary(x, y, PopupManager, employee, setYearMonth, closePopup)
+local function bottomBoundary(x, y, employee, setYearMonth, closePopup)
     local boundary = Cell:new(x, y, boundaryWidth, cellHeight)
 
-    local carryText = employee.carriedLeave and employee.carriedLeave or ""
     local totalUsedLeave = 0
     local monthlyData = {}
     for i = 1, 12, 1 do
@@ -171,8 +134,7 @@ local function bottomBoundary(x, y, PopupManager, employee, setYearMonth, closeP
     local bottom_boundary_left = {
         createCellWithLabel(0, 0, employee.name, employee.employmentYear),
         createLabelWithSmallFont(employee.position),
-        createLabelWithSmallFont(employee.maxLeave),
-        setCarryInput(PopupManager, employee, carryText, leavesLeft, totalUsedLeave)
+        createLabelWithSmallFont(employee.maxLeave)
     }
     for _, v in ipairs(bottom_boundary_left) do
         table.insert(label_list, v)
@@ -186,7 +148,7 @@ local function bottomBoundary(x, y, PopupManager, employee, setYearMonth, closeP
     table.insert(label_list, leavesLeft)
 
     local bottom_cell = {}
-    for i = 1, 18, 1 do
+    for i = 1, 17, 1 do
         bottom_cell[i] = Cell:new(cellWidth * (i - 1), 0, cellWidth, cellHeight)
         bottom_cell[i]:addChild(label_list[i])
         boundary:addChild(bottom_cell[i])
@@ -214,7 +176,7 @@ function EmployeeLeaveDataPopup.employee(EmployeeManager, PopupManager, name_pos
     local boundary = setContainers(x, y, boundaryWidth, boundaryHeight)
 
     local top_boundary = topBoundary(0, 0, employee.leaveStartYear, employee.leaveStartMonth)
-    local bottom_boundary = bottomBoundary(0, cellHeight, PopupManager, employee, setYearMonth, closePopup)
+    local bottom_boundary = bottomBoundary(0, cellHeight, employee, setYearMonth, closePopup)
     
     newPopup:addChild(boundary)
     boundary:addChild(top_boundary)
@@ -268,7 +230,7 @@ function EmployeeLeaveDataPopup.allEmployees(
         newPopup:addChild(top_boundary)
         index = index + 1
         for _, employee in ipairs(group.employees) do
-            local bottom_boundary = bottomBoundary(x, y + (index * cellHeight), PopupManager, employee, setYearMonth, closePopup)
+            local bottom_boundary = bottomBoundary(x, y + (index * cellHeight), employee, setYearMonth, closePopup)
             bottom_boundary.isStatic = false
             newPopup:addChild(bottom_boundary)
             index = index + 1
