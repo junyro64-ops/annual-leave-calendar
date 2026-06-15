@@ -57,8 +57,8 @@ function EmployeeManager.addEmployee(name, employmentYear, maxLeave, year, month
 		leaveStartMonth = month,
 		position = position,
 		usedLeave = 0,
-		carriedLeave = 0,
-		leaveDates = {} -- saves leave names in [year][month][day] table
+		leaveDates = {}, -- saves leave names in [year][month][day] table
+		pastLeaveData = {}
 	}
 
 	return ERROR_CHECK.SUCCESS, "등록됐습니다."
@@ -149,8 +149,19 @@ function EmployeeManager.checkLeaveStart(name, year, month)
 	local monthsPassed = ((year - data.leaveStartYear) * 12) + (month - data.leaveStartMonth)
 
 	if monthsPassed >= 12 then
+		data.pastLeaveData = {
+			key = tostring(data.leaveStartYear),
+			value = {
+				maxLeave = data.maxLeave,
+				leaveStartYear = data.leaveStartYear,
+				leaveStartMonth = data.leaveStartMonth,
+				usedLeave = data.usedLeave,
+				leaveDates = data.leaveDates
+			}
+		}
 		data.leaveStartYear = data.leaveStartYear + math.floor(monthsPassed / 12)
 		data.usedLeave = 0
+		data.leaveDates = {}
 	end
 end
 

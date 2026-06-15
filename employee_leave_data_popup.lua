@@ -166,21 +166,29 @@ end
 
 function EmployeeLeaveDataPopup.employee(EmployeeManager, PopupManager, name_pos, setYearMonth, closePopup)
     local employee = EmployeeManager.database[name_pos]
-    employee.carriedLeave = employee.carriedLeave or 0
 
     local newPopup = popup:new(popupWidth, popupHeight, closePopup)
 
     local x = (popupWidth - boundaryWidth) / 2
     local y = (popupHeight - boundaryHeight) / 2
 
-    local boundary = setContainers(x, y, boundaryWidth, boundaryHeight)
+    if employee.pastLeaveData and #employee.pastLeaveData > 0 then
+        local keys = {}
+        for key, _ in pairs(employee.pastLeaveData) do
+            table.insert(keys, key)
+        end
+        table.sort(keys)
 
-    local top_boundary = topBoundary(0, 0, employee.leaveStartYear, employee.leaveStartMonth)
-    local bottom_boundary = bottomBoundary(0, cellHeight, employee, setYearMonth, closePopup)
+        for i, key in ipairs(keys) do
+            
+        end
+    end
+
+    local top_boundary = topBoundary(x, y, employee.leaveStartYear, employee.leaveStartMonth)
+    local bottom_boundary = bottomBoundary(x, y + cellHeight, employee, setYearMonth, closePopup)
     
-    newPopup:addChild(boundary)
-    boundary:addChild(top_boundary)
-    boundary:addChild(bottom_boundary)
+    newPopup:addChild(top_boundary)
+    newPopup:addChild(bottom_boundary)
 
     table.insert(PopupManager.activePopup, newPopup)
 end
@@ -188,10 +196,6 @@ end
 function EmployeeLeaveDataPopup.allEmployees(
         EmployeeManager, PopupManager, setYearMonth, closePopup, orderEmployeeByPosition
     )
-    
-    for _, employee in pairs(EmployeeManager.database) do
-        employee.carriedLeave = employee.carriedLeave or 0
-    end
 
     local newPopup = popup:new(popupWidth, popupHeightAll, closePopup)
 
