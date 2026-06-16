@@ -23,8 +23,6 @@ local week = {"SUN", "MON", "TUE", "WED", "THU", "FRI", "SAT"}
 local SCREEN_SIZE = require("constants").SCREEN_SIZE
 local MARGIN = require("constants").MARGIN
 
-local ERROR_CHECK = require("constants").ERROR_CHECK
-
 local Fonts = require("constants").FONTS
 local FONT_SIZE = require("constants").FONT_SIZE
 

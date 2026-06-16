@@ -171,6 +171,49 @@ local function smallSelectionPopup(start, selections, type, onSelect)
     table.insert(PopupManager.activePopup, newPopup)
 end
 
+local function loopThroughPosition(EmployeeManager, value)
+    local arr = {}
+    for k, v in pairs(EmployeeManager.database) do
+        if v.position == value then
+            table.insert(arr, k)
+        end
+    end
+    return arr
+end
+
+local function orderEmployeeByPosition(EmployeeManager)
+    local arr = {}
+
+    for i = 1, #POSITION, 1 do
+        local key = loopThroughPosition(EmployeeManager, POSITION[i])
+        if #key > 0 then
+            table.sort(key, function (a, b)
+                local dataA = EmployeeManager.database[a]
+                local dataB = EmployeeManager.database[b]
+
+                if dataA.employmentYear ~= dataB.employmentYear then
+                    return dataA.employmentYear < dataB.employmentYear
+                end
+                
+                return a < b
+            end)
+            table.insert(arr, key) 
+        end
+    end
+
+    local function flattenArray(arr)
+        local flat = {}
+        for _, list in ipairs(arr) do
+            for _, value in ipairs(list) do
+                flat[#flat + 1] = value
+            end
+        end
+        return flat
+    end
+
+    return flattenArray(arr)
+end
+
 local function openApplyLeavePopup(year, month, day, EmployeeManager, func, checkAdmin)
     local applyLeavePopup = popup:new(600, 400)
 
@@ -185,12 +228,7 @@ local function openApplyLeavePopup(year, month, day, EmployeeManager, func, chec
 
     applyLeavePopup.itemStride = height
 
-    local sortedNames = {}
-    for name, data in pairs(EmployeeManager.database) do
-        table.insert(sortedNames, name)
-    end
-
-    table.sort(sortedNames)
+    local sortedNames = orderEmployeeByPosition(EmployeeManager)
 
     for i, name in ipairs(sortedNames) do
         local employee = Button:new(x, y + (height * (i - 1)), width, height, name)
@@ -363,49 +401,6 @@ function PopupManager.addEmployee(EmployeeManager, func)
     )
 
     table.insert(PopupManager.activePopup, newPopup)
-end
-
-local function loopThroughPosition(EmployeeManager, value)
-    local arr = {}
-    for k, v in pairs(EmployeeManager.database) do
-        if v.position == value then
-            table.insert(arr, k)
-        end
-    end
-    return arr
-end
-
-local function orderEmployeeByPosition(EmployeeManager)
-    local arr = {}
-
-    for i = 1, #POSITION, 1 do
-        local key = loopThroughPosition(EmployeeManager, POSITION[i])
-        if #key > 0 then
-            table.sort(key, function (a, b)
-                local dataA = EmployeeManager.database[a]
-                local dataB = EmployeeManager.database[b]
-
-                if dataA.employmentYear ~= dataB.employmentYear then
-                    return dataA.employmentYear < dataB.employmentYear
-                end
-                
-                return a < b
-            end)
-            table.insert(arr, key) 
-        end
-    end
-
-    local function flattenArray(arr)
-        local flat = {}
-        for _, list in ipairs(arr) do
-            for _, value in ipairs(list) do
-                flat[#flat + 1] = value
-            end
-        end
-        return flat
-    end
-
-    return flattenArray(arr)
 end
 
 function PopupManager.showEmployee(EmployeeManager, calendarChanged, setYearMonth)
