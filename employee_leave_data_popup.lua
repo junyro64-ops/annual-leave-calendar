@@ -157,13 +157,6 @@ local function bottomBoundary(x, y, employee, setYearMonth, closePopup)
     return boundary
 end
 
-local function setContainers(x, y, width, height)
-    local boundary = Cell:new(x, y, width, height)
-    boundary:disableLine()
-
-    return boundary
-end
-
 function EmployeeLeaveDataPopup.employee(EmployeeManager, PopupManager, name_pos, setYearMonth, closePopup)
     local employee = EmployeeManager.database[name_pos]
 
@@ -243,7 +236,7 @@ function EmployeeLeaveDataPopup.allEmployees(
     end
 
     newPopup:setScrollWindow(boundaryWidth, boundaryHeightAll)
-    newPopup.itemStride = cellHeight
+    newPopup.itemStride = cellHeight*1.25
     newPopup.is_scrollable = true
 
     table.insert(PopupManager.activePopup, newPopup)
