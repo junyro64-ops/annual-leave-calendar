@@ -25,7 +25,11 @@ function Cell:customDraw()
         love.graphics.rectangle("line", 0, 0, self.width, self.height)
     end
     
-    for _, child in ipairs(self.children) do
+    for i, child in ipairs(self.children) do
+        if i == 4 then
+            love.graphics.print("외 " .. #self.children - 4 .. "명", 0, 90)
+            return
+        end
 		if child.draw then
 			child:draw()
 		end
