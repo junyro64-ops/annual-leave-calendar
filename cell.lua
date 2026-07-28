@@ -1,5 +1,7 @@
 local UIElement = require("ui_element")
 
+local CELL_TYPE = require("constants").CELL_TYPE
+
 local Cell = setmetatable({}, {__index = UIElement})
 Cell.__index = Cell
 
@@ -26,8 +28,8 @@ function Cell:customDraw()
     end
     
     for i, child in ipairs(self.children) do
-        if i == 4 then
-            love.graphics.print("외 " .. #self.children - 4 .. "명", 0, 90)
+        if i == 4 and self.type == CELL_TYPE.DAY  then
+            love.graphics.print("외 " .. #self.children - 3 .. "명", 0, 90)
             return
         end
 		if child.draw then

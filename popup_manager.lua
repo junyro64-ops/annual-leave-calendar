@@ -313,6 +313,7 @@ function PopupManager.setCellPopup(cell, width, height, year, month, day, isHoli
                     local employee = Button:new(x, y + ((i - 1) * height), width, height, concat)
                     employee:setTextToLeft()
                     employee.font_size = FONT_SIZE.small_medium
+                    employee.isStatic = false
                     employee:setOnRightClick(
                         function ()
                             editCancelLeave(employeeName, year, month, day, leaveType, EmployeeManager, func, checkAdmin)
@@ -330,6 +331,10 @@ function PopupManager.setCellPopup(cell, width, height, year, month, day, isHoli
             )
             applyLeaveButton:setDrawLine()
             popupCell:addChild(applyLeaveButton)
+
+            popupCell:setScrollWindow(width - 20, height - 100)
+            popupCell.itemStride = 20
+            popupCell.is_scrollable = true
 
             PopupManager.registerPopup(popupCell)
         end
