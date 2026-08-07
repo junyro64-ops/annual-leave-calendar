@@ -28,7 +28,7 @@ function Cell:customDraw()
     end
     
     for i, child in ipairs(self.children) do
-        if i == 4 and self.type == CELL_TYPE.DAY  then
+        if #self.children > 4 and i == 4 and self.type == CELL_TYPE.DAY  then
             love.graphics.print("외 " .. #self.children - 3 .. "명", 0, 90)
             return
         end
