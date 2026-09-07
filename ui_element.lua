@@ -9,7 +9,7 @@ function UIElement:new(x, y, width, height)
         y = y or 0,
         width = width or 0,
         height = height or 0,
-        children = {}
+        children = {}       --this is where the actual contents are saved to show on the calendar
     }
     setmetatable(instance, self)
 

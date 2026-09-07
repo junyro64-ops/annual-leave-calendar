@@ -149,20 +149,24 @@ function EmployeeManager.checkLeaveStart(name, year, month)
 	local monthsPassed = ((year - data.leaveStartYear) * 12) + (month - data.leaveStartMonth)
 
 	if monthsPassed >= 12 then
-		data.pastLeaveData = {
-			key = tostring(data.leaveStartYear),
-			value = {
-				maxLeave = data.maxLeave,
-				leaveStartYear = data.leaveStartYear,
-				leaveStartMonth = data.leaveStartMonth,
-				usedLeave = data.usedLeave,
-				leaveDates = data.leaveDates
-			}
+		data.pastLeaveData = data.pastLeaveData or {}
+		data.pastLeaveData[data.leaveStartYear] = {
+			maxLeave = data.maxLeave,
+			leaveStartMonth = data.leaveStartMonth,
+			usedLeave = data.usedLeave,
+			leaveDates = data.leaveDates
 		}
 		data.leaveStartYear = data.leaveStartYear + math.floor(monthsPassed / 12)
 		data.usedLeave = 0
-		data.leaveDates = {}
 	end
+end
+
+function EmployeeManager.getPastLeaveData(name, year)
+	local data = EmployeeManager.database[name]
+	if data and data.pastLeaveData then
+		return data.pastLeaveData[year]
+	end
+	return nil
 end
 
 local function checkDate(year, month, checkAdminFunc)

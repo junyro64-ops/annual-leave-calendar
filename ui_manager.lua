@@ -304,9 +304,22 @@ end
 local function calculateUpToDateLeaves(name, _year, _month, _day, index)
     local employee = EmployeeManager.database[name]
     local data = employee.leaveDates
-    local leaveStartYear = employee.leaveStartYear
-    local leaveStartMonth = employee.leaveStartMonth
     local usedLeave = 0
+
+    local activeStartMonth = employee.leaveStartMonth
+    local cycleYear = _year
+    if _month < activeStartMonth then
+        cycleYear = _year - 1
+    end
+
+    if cycleYear < employee.leaveStartYear and employee.pastLeaveData and employee.pastLeaveData[cycleYear] then
+        activeStartMonth = employee.pastLeaveData[cycleYear].leaveStartMonth
+
+        cycleYear = _year
+        if _month < activeStartMonth then
+            cycleYear = _year - 1
+        end
+    end
 
     local function addLeaves(leaveData, limitIndex)
         local amount = 0
@@ -319,6 +332,35 @@ local function calculateUpToDateLeaves(name, _year, _month, _day, index)
         return amount
     end
 
+    if data[cycleYear] then
+        local endMonth = (cycleYear == _year) and _month or 12
+        for month = activeStartMonth, endMonth, 1 do
+            if data[cycleYear][month] then
+                for day = 1, 31, 1 do
+                    if data[cycleYear][month][day] then
+                        local limit = (cycleYear == _year and month == _month and day == _day) and index or nil
+                        usedLeave = usedLeave + addLeaves(data[cycleYear][month][day], limit)
+                    end
+                    if cycleYear == _year and month == _month and day == _day then break end
+                end
+            end
+        end
+    end
+
+    if cycleYear < _year and data[_year] then
+        for month = 1, _month, 1 do
+            if data[_year][month] then
+                for day = 1, 31, 1 do
+                    if data[_year][month][day] then
+                        local limit = (month == _month and day == _day) and index or nil
+                        usedLeave = usedLeave + addLeaves(data[_year][month][day], limit)
+                    end
+                    if month == _month and day == _day then break end
+                end
+            end
+        end
+    end
+    --[[
     if leaveStartYear < _year then 
         if data[_year - 1] then
             for month = leaveStartMonth, 12, 1 do
@@ -357,6 +399,7 @@ local function calculateUpToDateLeaves(name, _year, _month, _day, index)
             end
         end
     end
+    ]]
 
     return usedLeave
 end
