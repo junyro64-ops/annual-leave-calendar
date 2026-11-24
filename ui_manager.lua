@@ -360,46 +360,6 @@ local function calculateUpToDateLeaves(name, _year, _month, _day, index)
             end
         end
     end
-    --[[
-    if leaveStartYear < _year then 
-        if data[_year - 1] then
-            for month = leaveStartMonth, 12, 1 do
-                if data[_year - 1][month] then
-                    for day = 1, 31, 1 do
-                        if data[_year - 1][month][day] then
-                            usedLeave = usedLeave + addLeaves(data[_year - 1][month][day])
-                        end
-                    end
-                end
-            end
-        end
-        if data[_year] then
-            for month = 1, _month, 1 do
-                if data[_year][month] then
-                    for day = 1, 31, 1 do
-                        if data[_year][month][day] then
-                            local limit = (month == _month and day == _day) and index or nil
-                            usedLeave = usedLeave + addLeaves(data[_year][month][day], limit)
-                        end
-                        if month == _month and day == _day then break end
-                    end
-                end
-            end
-        end
-    elseif data[_year] then
-        for month = leaveStartMonth, _month, 1 do
-            if data[_year][month] then
-                for day = 1, 31, 1 do
-                    if data[_year][month][day] then
-                        local limit = (month == _month and day == _day) and index or nil
-                        usedLeave = usedLeave + addLeaves(data[_year][month][day], limit)
-                    end
-                    if month == _month and day == _day then break end
-                end
-            end
-        end
-    end
-    ]]
 
     return usedLeave
 end
