@@ -141,6 +141,41 @@ function EmployeeManager.getDeletedData()
 	return deletedData
 end
 
+local function getCycleStartYear(data, year, month)
+	if month < data.leaveStartMonth then
+		return year - 1
+	end
+	return year
+end
+
+local function calculateCycleUsedLeave(data, cycleStartyear)
+	if not data or not data.leaveDates then return 0 end
+
+	local startMonth = data.leaveStartMonth
+	local total = 0
+
+	local function sumMonth (y, m)
+		if data.leaveDates[y] and data.leaveDates[y][m] then
+			for _, leaveList in pairs(data.leaveDates[y][m]) do
+				for _, leaveKey in ipairs(leaveList) do
+					total = total + (LEAVE_AMOUNT[leaveKey] or 0)
+				end
+			end
+		end
+	end
+
+	for m = startMonth, 12 do
+		sumMonth(cycleStartyear, m)
+	end
+
+	for m = 1, startMonth - 1 do
+		sumMonth(cycleStartyear + 1, m)
+	end
+
+	return total
+
+end
+
 -- this function should run whenver the application loads
 --   so that it can reset the leave record for another year
 --   but keep the leave dates data for future checks
@@ -157,7 +192,7 @@ function EmployeeManager.checkLeaveStart(name, year, month)
 			leaveDates = data.leaveDates
 		}
 		data.leaveStartYear = data.leaveStartYear + math.floor(monthsPassed / 12)
-		data.usedLeave = 0
+		data.usedLeave = calculateCycleUsedLeave(data, data.leaveStartYear)
 	end
 end
 
@@ -256,20 +291,27 @@ function EmployeeManager.useLeave(name, year, month, day, amount_key, checkAdmin
 			return ERROR_CHECK.DATA_EXIST, "이미 사용한 연차입니다."
 		end
 	end
+
+	local amount = LEAVE_AMOUNT[amount_key]
+	local targetCycleYear = getCycleStartYear(data, year, month)
 	
 	if currentCycle(name, year, month) then
-		local amount = LEAVE_AMOUNT[amount_key]
-		local carry = data.carriedLeave or 0
-		
+		local carry = data.carriedLeave or 0		
 		data.usedLeave = data.usedLeave or 0
+
 		if (data.usedLeave + amount) > (data.maxLeave + carry) then
 			return ERROR_CHECK.MAX_REACHED, "연차 횟수를 초과했습니다."
 		end
-		
-		table.insert(data.leaveDates[year][month][day], amount_key)
-		
+
 		data.usedLeave = data.usedLeave + amount
+	elseif targetCycleYear > data.leaveStartYear then
+		local futureCycleUsed = calculateCycleUsedLeave(data, targetCycleYear)
+		if (futureCycleUsed + amount) > data.maxLeave then
+			return ERROR_CHECK.MAX_REACHED, "연차 횟수를 초과했습니다."
+		end
 	end
+		
+	table.insert(data.leaveDates[year][month][day], amount_key)
 
 	EmployeeManager.leaveDateList = EmployeeManager.leaveDateList or {}
 	EmployeeManager.leaveDateList[year] = EmployeeManager.leaveDateList[year] or {}
@@ -305,11 +347,32 @@ function EmployeeManager.editLeave(name, year, month, day, original_key, edit_ke
 
 	local leaveDates = data.leaveDates[year][month][day]
 	if leaveDates then
-		for i, key in ipairs(leaveDates) do
+		for _, key in ipairs(leaveDates) do
 			if key == edit_key then
 				return ERROR_CHECK.DATA_EXIST, "해당 날짜에 같은 연차가 존재합니다."
 			end
 		end
+	end
+
+	local amountOriginal = LEAVE_AMOUNT[original_key]
+	local amountEdit = LEAVE_AMOUNT[edit_key]
+	local targetCycleYear = getCycleStartYear(data, year, month)
+
+	if currentCycle(name, year, month) then
+		local carry = data.carriedLeave or 0
+		data.usedLeave = data.usedLeave or 0
+		if(data.usedLeave - amountOriginal + amountEdit) > (data.maxLeave + carry) then
+			return ERROR_CHECK.MAX_REACHED, "연차 횟수를 초과했습니다."
+		end
+		data.usedLeave = data.usedLeave - amountOriginal + amountEdit
+	elseif targetCycleYear > data.leaveStartYear then
+		local futureCycleUsed = calculateCycleUsedLeave(data, targetCycleYear)
+		if (futureCycleUsed - amountOriginal + amountEdit) > data.maxLeave then
+			return ERROR_CHECK.MAX_REACHED, "연차 횟수를 초과했습니다."
+		end
+	end
+
+	if leaveDates then
 		for i, key in ipairs(leaveDates) do
 			if key == original_key then
 				leaveDates[i] = edit_key
@@ -331,20 +394,6 @@ function EmployeeManager.editLeave(name, year, month, day, original_key, edit_ke
 				break
 			end
 		end
-	end
-
-	if currentCycle(name, year, month) then
-		local amountOriginal = LEAVE_AMOUNT[original_key]
-		local amountEdit = LEAVE_AMOUNT[edit_key]
-
-		local carry = data.carriedLeave or 0
-		
-		data.usedLeave = data.usedLeave or 0
-		if (data.usedLeave - amountOriginal + amountEdit) > (data.maxLeave + carry) then
-			return ERROR_CHECK.MAX_REACHED, "연차 횟수를 초과했습니다."
-		end
-		
-		data.usedLeave = data.usedLeave - amountOriginal + amountEdit
 	end
 
 	return ERROR_CHECK.SUCCESS, "연차 수정이 완료됐습니다."
