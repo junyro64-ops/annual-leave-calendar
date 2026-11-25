@@ -56,6 +56,7 @@ function EmployeeManager.addEmployee(name, employmentYear, maxLeave, year, month
 		leaveStartYear = year,
 		leaveStartMonth = month,
 		position = position,
+		carriedLeave = 0,
 		usedLeave = 0,
 		leaveDates = {}, -- saves leave names in [year][month][day] table
 		pastLeaveData = {}
@@ -76,9 +77,11 @@ local function deleteChangeLeaveData(employee, oldName, newName)
 							for i = #list, 1, -1 do
 								local listItem = list[i]
 								if listItem.name == oldName then
-									local currentKey = listItem.key
-									table.remove(list, i)
-									if newName then table.insert(list, {name = newName, key = currentKey}) end
+									if newName then
+										listItem.name = newName
+									else
+										table.remove(list, i)
+									end
 								end
 							end
 					end
@@ -86,6 +89,34 @@ local function deleteChangeLeaveData(employee, oldName, newName)
 			end
 		end
 	end
+end
+
+local function calculateCycleUsedLeave(data, cycleStartyear)
+	if not data or not data.leaveDates then return 0 end
+
+	local startMonth = data.leaveStartMonth
+	local total = 0
+
+	local function sumMonth (y, m)
+		if data.leaveDates[y] and data.leaveDates[y][m] then
+			for _, leaveList in pairs(data.leaveDates[y][m]) do
+				for _, leaveKey in ipairs(leaveList) do
+					total = total + (LEAVE_AMOUNT[leaveKey] or 0)
+				end
+			end
+		end
+	end
+
+	for m = startMonth, 12 do
+		sumMonth(cycleStartyear, m)
+	end
+
+	for m = 1, startMonth - 1 do
+		sumMonth(cycleStartyear + 1, m)
+	end
+
+	return total
+
 end
 
 -- If this function is called, the popup window that called it must be closed.
@@ -102,8 +133,12 @@ function EmployeeManager.editEmployee(_name, employmentYear, maxLeave, year, mon
 
 	data.maxLeave = maxLeave
 	data.leaveStartMonth = month
+	data.usedLeave = calculateCycleUsedLeave(data, data.leaveStartYear)
 	
 	if data.position ~= position then
+		if EmployeeManager.database[newName] then
+			return ERROR_CHECK.DATA_EXIST, "이미 존재하는 이름과 직책입니다."
+		end
 		EmployeeManager.database[newName] = data
 		EmployeeManager.database[newName].position = position
 		EmployeeManager.database[_name] = nil
@@ -148,34 +183,6 @@ local function getCycleStartYear(data, year, month)
 	return year
 end
 
-local function calculateCycleUsedLeave(data, cycleStartyear)
-	if not data or not data.leaveDates then return 0 end
-
-	local startMonth = data.leaveStartMonth
-	local total = 0
-
-	local function sumMonth (y, m)
-		if data.leaveDates[y] and data.leaveDates[y][m] then
-			for _, leaveList in pairs(data.leaveDates[y][m]) do
-				for _, leaveKey in ipairs(leaveList) do
-					total = total + (LEAVE_AMOUNT[leaveKey] or 0)
-				end
-			end
-		end
-	end
-
-	for m = startMonth, 12 do
-		sumMonth(cycleStartyear, m)
-	end
-
-	for m = 1, startMonth - 1 do
-		sumMonth(cycleStartyear + 1, m)
-	end
-
-	return total
-
-end
-
 -- this function should run whenver the application loads
 --   so that it can reset the leave record for another year
 --   but keep the leave dates data for future checks
@@ -189,8 +196,9 @@ function EmployeeManager.checkLeaveStart(name, year, month)
 			maxLeave = data.maxLeave,
 			leaveStartMonth = data.leaveStartMonth,
 			usedLeave = data.usedLeave,
-			leaveDates = data.leaveDates
+			carriedLeave = data.carriedLeave or 0
 		}
+		data.carriedLeave = 0
 		data.leaveStartYear = data.leaveStartYear + math.floor(monthsPassed / 12)
 		data.usedLeave = calculateCycleUsedLeave(data, data.leaveStartYear)
 	end
@@ -232,6 +240,10 @@ end
 function EmployeeManager.cancelLeave(name, year, month, day, amount_key, checkAdminFunc)
 	local data = EmployeeManager.database[name]
 
+	if not data then
+		return ERROR_CHECK.FAILED, "데이터가 없습니다."
+	end
+
 	local check_date = checkDate(year, month, checkAdminFunc)
 
 	if check_date == false then
@@ -243,7 +255,11 @@ function EmployeeManager.cancelLeave(name, year, month, day, amount_key, checkAd
 		data.usedLeave = data.usedLeave - amount
 	end
 	
-	local leaveDates = data.leaveDates[year][month][day]
+	local leaveDates = data.leaveDates
+		and data.leaveDates[year]
+		and data.leaveDates[year][month]
+		and data.leaveDates[year][month][day]
+
 	if leaveDates then
 		for i = #leaveDates, 1, -1 do
 			if leaveDates[i] == amount_key then
@@ -254,7 +270,11 @@ function EmployeeManager.cancelLeave(name, year, month, day, amount_key, checkAd
 		if #leaveDates == 0 then data.leaveDates[year][month][day] = nil end
 	end
 
-	local list = EmployeeManager.leaveDateList[year][month][day]
+	local list = EmployeeManager.leaveDateList 
+		and EmployeeManager.leaveDateList[year]
+		and EmployeeManager.leaveDateList[year][month]
+		and EmployeeManager.leaveDateList[year][month][day]
+
 	for i = #list, 1, -1 do
 		local listItem = list[i]
 		if listItem.name == name and listItem.key == amount_key then
@@ -286,10 +306,15 @@ function EmployeeManager.useLeave(name, year, month, day, amount_key, checkAdmin
 	data.leaveDates[year][month] = data.leaveDates[year][month] or {}
 	data.leaveDates[year][month][day] = data.leaveDates[year][month][day] or {}
 	
+	local dayTotal = 0
 	for _, key in ipairs(data.leaveDates[year][month][day]) do
 		if key == amount_key then
 			return ERROR_CHECK.DATA_EXIST, "이미 사용한 연차입니다."
 		end
+		dayTotal = dayTotal + (LEAVE_AMOUNT[key] or 0)
+	end
+	if dayTotal + LEAVE_AMOUNT[amount_key] > 1 then
+		return ERROR_CHECK.INVALID_DATA, "하루 연차 사용량은 1일을 초과할 수 없습니다."
 	end
 
 	local amount = LEAVE_AMOUNT[amount_key]
@@ -346,12 +371,17 @@ function EmployeeManager.editLeave(name, year, month, day, original_key, edit_ke
 	data.leaveDates[year][month][day] = data.leaveDates[year][month][day] or {}
 
 	local leaveDates = data.leaveDates[year][month][day]
+	local dayTotal = 0
 	if leaveDates then
 		for _, key in ipairs(leaveDates) do
 			if key == edit_key then
 				return ERROR_CHECK.DATA_EXIST, "해당 날짜에 같은 연차가 존재합니다."
 			end
+			dayTotal = dayTotal + (LEAVE_AMOUNT[key] or 0)
 		end
+	end
+	if (dayTotal - LEAVE_AMOUNT[original_key] + LEAVE_AMOUNT[edit_key]) > 1 then
+		return ERROR_CHECK.INVALID_DATA, "하루 연차 사용량은 1일을 초과할 수 없습니다."
 	end
 
 	local amountOriginal = LEAVE_AMOUNT[original_key]

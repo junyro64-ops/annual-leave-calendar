@@ -429,9 +429,10 @@ function UIManager.loadCalendar(year, month)
 
 	local startingWeekday = CalendarManager.startingWeekDayTable[year][month]
     local daysInMonth = CalendarManager.daysInMonthTable[year][month]
-    previousMonth = (currentMonth - 2) % 12 + 1
-    local previousMonthLastDay = CalendarManager.daysInMonthTable[currentYear][previousMonth]
-    nextMonth = (currentMonth % 12) + 1
+    previousMonth = (month - 2) % 12 + 1
+    local previousMonthYear = (previousMonth == 12) and (year - 1) or year
+    local previousMonthLastDay = CalendarManager.daysInMonthTable[previousMonthYear][previousMonth]
+    nextMonth = (month % 12) + 1
 
 	--Insert the year and the month on the calendar and cellDates table for initialization
     -- year cell:

@@ -333,7 +333,7 @@ function PopupManager.setCellPopup(cell, width, height, year, month, day, isHoli
             popupCell:addChild(applyLeaveButton)
 
             popupCell:setScrollWindow(width - 20, height - 100)
-            popupCell.itemStride = 20
+            popupCell.itemStride = 30
             popupCell.is_scrollable = true
 
             PopupManager.registerPopup(popupCell)
@@ -344,7 +344,7 @@ end
 function PopupManager.setYearPopup(cell, year, onSelect)
     cell:setOnClick(
         function ()
-            smallSelectionPopup(2018, year - 2018, cell.type, onSelect)
+            smallSelectionPopup(2018, year - 2018 + 1, cell.type, onSelect)
         end
     )
 end

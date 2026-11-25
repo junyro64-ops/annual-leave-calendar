@@ -83,12 +83,11 @@ function UIElement:mousePressed(_x, _y, mouseButton, presses)
 
     self.isActive = true
     
-    if presses > 1 and mouseButton == 1 and self.onDoubleClick then
+    if presses > 1 and mouseButton == 1 and self.doubleClick then
         self:onDoubleClick()
-    end
-    if mouseButton == 1 and self.onClick then
+    elseif mouseButton == 1 and self.callback then
         self:onClick()
-    elseif mouseButton == 2 and self.onRightClick then
+    elseif mouseButton == 2 and self.rightClick then
         self:onRightClick()
     end
 
